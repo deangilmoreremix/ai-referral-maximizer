@@ -1,0 +1,449 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add Tailwind's typography plugin styles */
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  color: #1e40af; /* blue-800 */
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.25rem;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+}
+
+.prose p {
+  margin-top: 0.75em;
+  margin-bottom: 0.75em;
+}
+
+.prose ul, .prose ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.prose ul > li {
+  list-style-type: disc;
+}
+
+.prose ol > li {
+  list-style-type: decimal;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: #111827; /* gray-900 */
+}
+
+.prose a {
+  color: #16a34a; /* green-600 */
+  text-decoration: underline;
+}
+
+.prose blockquote {
+  border-left: 4px solid #d1d5db; /* gray-300 */
+  padding-left: 1rem;
+  font-style: italic;
+  color: #4b5563; /* gray-600 */
+}
+
+/* Override code blocks to remove gray background */
+.prose code {
+  background-color: transparent;
+  padding: 0.125em 0.25em;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-weight: 500;
+  color: #111827; /* gray-900 */
+}
+
+.prose pre {
+  background-color: #f3f4f6; /* gray-100 - lighter background */
+  color: #1f2937; /* gray-800 - darker text for better contrast */
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb; /* gray-200 - subtle border */
+}
+
+.markdown-content {
+  max-height: 700px; /* Increased height to give more space to content */
+  overflow-y: auto;
+  padding-right: 1rem;
+}
+
+/* Remove formatting from inline code */
+.prose code::before,
+.prose code::after {
+  content: none !important;
+}
+
+/* Animation for modals and tooltips */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes bounceOnce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-bounce {
+  animation: bounceOnce 1s ease-in-out;
+}
+
+/* New animations for landing page */
+@keyframes slideInFromLeft {
+  0% {
+    transform: translateX(-50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(50px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromBottom {
+  0% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInSlow {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* Service Selection Animation */
+.service-card {
+  transition: all 0.3s ease-in-out;
+}
+
+.service-card.selected {
+  transform: scale(1.02);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.service-card .benefit-list {
+  max-height: 0;
+  opacity: 0;
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.service-card.selected .benefit-list {
+  max-height: 200px;
+  opacity: 1;
+  margin-top: 1rem;
+}
+
+/* Delay classes */
+.delay-100 {
+  animation-delay: 0.1s;
+}
+
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-300 {
+  animation-delay: 0.3s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}
+
+.delay-500 {
+  animation-delay: 0.5s;
+}
+
+.delay-700 {
+  animation-delay: 0.7s;
+}
+
+.delay-1000 {
+  animation-delay: 1s;
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.03);
+}
+
+.hover-bright {
+  transition: filter 0.3s ease;
+}
+
+.hover-bright:hover {
+  filter: brightness(1.1);
+}
+
+/* Button animations */
+.btn-pulse {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-pulse::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: inherit;
+  opacity: 0;
+  transition: all 0.5s ease-out;
+}
+
+.btn-pulse:hover::after {
+  animation: pulse-white 1.5s ease-out infinite;
+}
+
+@keyframes pulse-white {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  
+  50% {
+    transform: scale(1.05);
+    opacity: 0;
+  }
+  
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Specific animations for components */
+.animate-number-counter {
+  animation: countUp 2s ease-out forwards;
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.staggered-item:nth-child(1) { animation-delay: 0.1s; }
+.staggered-item:nth-child(2) { animation-delay: 0.2s; }
+.staggered-item:nth-child(3) { animation-delay: 0.3s; }
+.staggered-item:nth-child(4) { animation-delay: 0.4s; }
+.staggered-item:nth-child(5) { animation-delay: 0.5s; }
+.staggered-item:nth-child(6) { animation-delay: 0.6s; }
+
+/* Scroll animations */
+.scroll-animation {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.scroll-animation.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Animation for pulsing spotlight on important elements */
+@keyframes pulse-spotlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+  }
+}
+
+.pulse-spotlight {
+  animation: pulse-spotlight 2s infinite;
+}
+
+/* Improve card highlight on hover */
+.content-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  z-index: 1; /* Ensure cards are above other elements */
+}
+
+.content-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border-color: #16a34a; /* green-600 */
+}
+
+.content-card:active {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 10px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Tooltip attention animation */
+@keyframes tooltipAttention {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.tooltip-attention {
+  animation: tooltipAttention 1s ease-in-out;
+}
+
+/* Make all buttons clickable */
+button, a, .btn, [role="button"] {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 2; /* Ensure buttons are above other elements */
+}
+
+/* Fix for modals and dialogs */
+.fixed {
+  position: fixed !important;
+}
+
+/* Fix for welcome modal z-index */
+.welcome-modal {
+  z-index: 9999 !important;
+}
+
+/* Fix for any hidden overlay elements */
+.invisible, [aria-hidden="true"] {
+  pointer-events: none !important;
+}
+
+/* Fix for missing MessageCircle and BarChart2 components */
+.MessageCircle,
+.BarChart2 {
+  display: inline-flex;
+}
+
+/* Fix for TW classes on consultant accelerator */
+.bg-blue-100 { background-color: #dbeafe !important; }
+.bg-indigo-100 { background-color: #e0e7ff !important; }
+.bg-purple-100 { background-color: #f3e8ff !important; }
+.bg-green-100 { background-color: #dcfce7 !important; }
+.bg-amber-100 { background-color: #fef3c7 !important; }
+.bg-red-100 { background-color: #fee2e2 !important; }
+
+.text-blue-600 { color: #2563eb !important; }
+.text-indigo-600 { color: #4f46e5 !important; }
+.text-purple-600 { color: #9333ea !important; }
+.text-green-600 { color: #16a34a !important; }
+.text-amber-600 { color: #d97706 !important; }
+.text-red-600 { color: #dc2626 !important; }
+
+.border-blue-200 { border-color: #bfdbfe !important; }
+.border-indigo-200 { border-color: #c7d2fe !important; }
+.border-purple-200 { border-color: #e9d5ff !important; }
+.border-green-200 { border-color: #bbf7d0 !important; }
+.border-amber-200 { border-color: #fde68a !important; }
+.border-red-200 { border-color: #fecaca !important; }
+
+/* Content card animations */
+.content-type-card {
+  transition: all 0.4s ease-out;
+}
