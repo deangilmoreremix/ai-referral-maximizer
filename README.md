@@ -76,6 +76,9 @@ Edit your `.env` file with your API credentials:
 OPENAI_API_KEY="sk-your-openai-api-key"
 VITE_OPENAI_API_KEY="sk-your-openai-api-key"
 
+# Default GPT-5 model to use
+OPENAI_MODEL=gpt-5
+
 # Supabase Configuration (REQUIRED)
 VITE_SUPABASE_URL="https://your-project-ref.supabase.co"
 VITE_SUPABASE_ANON_KEY="your-supabase-anon-key"
@@ -107,6 +110,31 @@ Open your browser and navigate to `http://localhost:5173`
 3. Go to **Settings** → **API**
 4. Copy your **Project URL** and **anon/public key**
 5. Add them to your `.env` file
+
+### GPT-5 Configuration
+
+The app uses OpenAI's GPT-5 models via the Responses API (not the deprecated Chat Completions API):
+
+**Setting your OpenAI API Key:**
+- Add your key to `.env` as `OPENAI_API_KEY`
+- Also add it to your Supabase project's environment variables
+- Ensure your OpenAI account has access to GPT-5 models
+
+**Switching Models:**
+- Use the model selector in the GPT-5 Test Interface (`/gpt5-test`)
+- Available models: `gpt-5`, `gpt-5-mini`, `gpt-5-nano`
+- Default model can be set via `OPENAI_MODEL` in `.env`
+
+**Example API Call:**
+```bash
+curl -X POST 'https://your-project.supabase.co/functions/v1/openai-gpt5' \
+  -H 'Authorization: Bearer your-supabase-anon-key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "input": "Generate a professional referral email",
+    "model": "gpt-5"
+  }'
+```
 
 ## 📖 User Guide
 
@@ -362,7 +390,14 @@ We welcome contributions! Please:
 
 ## 📝 Changelog
 
-### Version 2.0.0 (Latest)
+### Version 2.1.0 (Latest)
+- **NEW**: Complete GPT-5 Responses API implementation with model selector
+- **NEW**: GPT-5 Test Interface with real-time model switching
+- **NEW**: Enhanced error handling for API failures (401, 429, 5xx)
+- **IMPROVED**: Updated Supabase Edge Function to use Responses API (not deprecated Chat Completions)
+- **IMPROVED**: TypeScript types for GPT-5 request/response payloads
+
+### Version 2.0.0
 - **NEW**: GPT-5 model support with OpenAI Responses API
 - **NEW**: Enhanced consultant and agency accelerator programs
 - **IMPROVED**: Better personalization with relationship type awareness

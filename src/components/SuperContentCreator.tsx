@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Heart, CheckCircle, FileText, Share2, Mail, MessageSquare, 
-  Users, Briefcase, Search, Filter, ChevronDown, Zap, Link, 
+import {
+  Heart, CheckCircle, FileText, Share2, Mail, MessageSquare,
+  Users, Briefcase, Search, Filter, ChevronDown, Zap, Link,
   Target, Gift, Award, Calendar, Phone, UserCheck, Settings,
   ArrowRight, Plus, RefreshCw, AlertCircle, FileCheck, Download,
-  Copy, X, ChevronUp
+  Copy, X, ChevronUp, ImageIcon
 } from 'lucide-react';
 import { generateContent } from '../services/geminiService';
+import ImageGenerator from './ImageGenerator';
 
 interface ReferralMethod {
   id: string;
@@ -40,6 +41,7 @@ const SuperContentCreator: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [generatedContents, setGeneratedContents] = useState<GeneratedContent[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [industry, setIndustry] = useState('');
   const [targetAudience, setTargetAudience] = useState('');
   const [businessSize, setBusinessSize] = useState('');
@@ -705,7 +707,7 @@ const SuperContentCreator: React.FC = () => {
                 </div>
                 
                 {/* Generate more button */}
-                <div className="mt-4 flex justify-center">
+                <div className="mt-4 flex justify-center gap-3">
                   <button
                     onClick={() => setShowResults(false)}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium flex items-center"
@@ -713,12 +715,44 @@ const SuperContentCreator: React.FC = () => {
                     <Zap size={16} className="mr-1.5" />
                     Generate More Content
                   </button>
+                  <button
+                    onClick={() => setShowImageGenerator(true)}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-sm font-medium flex items-center"
+                  >
+                    <ImageIcon size={16} className="mr-1.5" />
+                    Generate Images
+                  </button>
                 </div>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Image Generator Modal */}
+      {showImageGenerator && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900">AI Image Generator</h2>
+              <button
+                onClick={() => setShowImageGenerator(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <ImageGenerator
+                contentType="presentation"
+                contentTitle="Referral Campaign Visuals"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

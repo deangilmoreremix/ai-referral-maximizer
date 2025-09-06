@@ -1,276 +1,179 @@
 import React, { useState } from 'react';
-import { Send, RefreshCw, Copy, Download, AlertCircle, CheckCircle, Brain } from 'lucide-react';
-import { OpenAIModel, MODEL_INFO } from '../types/openai';
+import { Zap, Send, AlertCircle, CheckCircle } from 'lucide-react';
+
+interface GPT5Request {
+  input?: string;
+  messages?: Array<{ role: string; content: string }>;
+  model?: "gpt-5" | "gpt-5-mini" | "gpt-5-nano";
+}
+
+interface GPT5Response {
+  model: string;
+  text: string;
+}
 
 const GPT5TestInterface: React.FC = () => {
   const [input, setInput] = useState('');
-  const [selectedModel, setSelectedModel] = useState<OpenAIModel>('gpt-5');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [response, setResponse] = useState('');
+  const [selectedModel, setSelectedModel] = useState<"gpt-5" | "gpt-5-mini" | "gpt-5-nano">('gpt-5');
+  const [response, setResponse] = useState<GPT5Response | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fallbackNote, setFallbackNote] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
-  const handleGenerate = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!input.trim()) return;
-    
-    setIsGenerating(true);
+
+    setIsLoading(true);
     setError(null);
-    setFallbackNote(null);
-    setResponse('');
-    
+    setResponse(null);
+
     try {
+      const requestBody: GPT5Request = {
+        input: input.trim(),
+        model: selectedModel
+      };
+
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
+
       if (!supabaseUrl || !supabaseAnonKey) {
         throw new Error('Supabase configuration is missing');
       }
-      
-      const apiResponse = await fetch(`${supabaseUrl}/functions/v1/openai-gpt5`, {
+
+      const apiUrl = `${supabaseUrl}/functions/v1/openai-gpt5`;
+
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${supabaseAnonKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          input: input,
-          model: selectedModel
-        }),
+        body: JSON.stringify(requestBody),
       });
-      
-      const data = await apiResponse.json();
-      
-      if (!apiResponse.ok) {
-        throw new Error(data.error || 'Failed to generate content');
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || `HTTP ${res.status}`);
       }
-      
-      setResponse(data.text || '');
-      
-      if (data.fallback_note) {
-        setFallbackNote(data.fallback_note);
-      }
-      
+
+      const data: GPT5Response = await res.json();
+      setResponse(data);
     } catch (err: any) {
-      console.error('Error generating content:', err);
-      setError(err.message || 'Failed to generate content');
+      setError(err.message || 'An error occurred');
     } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(response);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleDownload = () => {
-    const blob = new Blob([response], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `gpt5-response-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      handleGenerate();
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6">
-          <div className="flex items-center">
-            <Brain size={24} className="mr-3" />
-            <div>
-              <h1 className="text-2xl font-bold">GPT-5 Test Interface</h1>
-              <p className="text-purple-100 text-sm mt-1">
-                Test OpenAI's GPT-5 and other models using the Responses API
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+          <Zap className="h-8 w-8 text-green-600 mr-3" />
+          GPT-5 Test Interface
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Test the OpenAI GPT-5 models using the Responses API
+        </p>
+      </div>
 
-        {/* Controls */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="md:col-span-2">
-              <label htmlFor="model-select" className="block text-sm font-medium text-gray-700 mb-2">
-                Select Model
-              </label>
-              <select
-                id="model-select"
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value as OpenAIModel)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-              >
-                {Object.entries(MODEL_INFO).map(([model, info]) => (
-                  <option key={model} value={model}>
-                    {info.name}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-sm text-gray-500">
-                {MODEL_INFO[selectedModel].description}
-              </p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Model Info
-              </label>
-              <div className="bg-gray-50 rounded-md p-3 border border-gray-200">
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span>Speed:</span>
-                    <span className="capitalize">{MODEL_INFO[selectedModel].speed}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Quality:</span>
-                    <span className="capitalize">{MODEL_INFO[selectedModel].quality}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Available:</span>
-                    <span className={MODEL_INFO[selectedModel].available ? 'text-green-600' : 'text-amber-600'}>
-                      {MODEL_INFO[selectedModel].available ? 'Yes' : 'No'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Model Selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select GPT-5 Model
+            </label>
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value as "gpt-5" | "gpt-5-mini" | "gpt-5-nano")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+            >
+              <option value="gpt-5">GPT-5 (Full Model)</option>
+              <option value="gpt-5-mini">GPT-5 Mini (Faster)</option>
+              <option value="gpt-5-nano">GPT-5 Nano (Fastest)</option>
+            </select>
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="input-textarea" className="block text-sm font-medium text-gray-700 mb-2">
-              Your Prompt
+          {/* Input Textarea */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Input Text
             </label>
             <textarea
-              id="input-textarea"
-              rows={4}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Enter your prompt here... (Cmd/Ctrl + Enter to generate)"
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-purple-500 focus:border-purple-500 shadow-sm"
-              disabled={isGenerating}
+              placeholder="Enter your prompt here..."
+              rows={6}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 resize-vertical"
+              disabled={isLoading}
             />
-            <div className="flex justify-between items-center mt-2">
-              <p className="text-xs text-gray-500">
-                Press Cmd/Ctrl + Enter to generate, or use the button below
-              </p>
-              <span className="text-xs text-gray-500">
-                {input.length} characters
-              </span>
-            </div>
           </div>
 
-          <button
-            onClick={handleGenerate}
-            disabled={!input.trim() || isGenerating}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium py-3 px-4 rounded-md hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all flex items-center justify-center"
-          >
-            {isGenerating ? (
-              <>
-                <RefreshCw size={18} className="mr-2 animate-spin" />
-                Running with {MODEL_INFO[selectedModel].name}...
-              </>
-            ) : (
-              <>
-                <Send size={18} className="mr-2" />
-                Run with {MODEL_INFO[selectedModel].name}
-              </>
-            )}
-          </button>
-        </div>
+          {/* Submit Button */}
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={!input.trim() || isLoading}
+              className={`px-6 py-2 rounded-md text-white font-medium flex items-center ${
+                !input.trim() || isLoading
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Send size={16} className="mr-2" />
+                  Run with GPT-5
+                </>
+              )}
+            </button>
+          </div>
+        </form>
 
-        {/* Response Area */}
-        <div className="p-6">
-          {fallbackNote && (
-            <div className="mb-4 bg-amber-50 border-l-4 border-amber-400 p-3">
-              <div className="flex">
-                <AlertCircle className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                <div className="ml-3">
-                  <p className="text-sm text-amber-700">
-                    <strong>Fallback Model Used:</strong> {fallbackNote}
-                  </p>
-                </div>
+        {/* Error Display */}
+        {error && (
+          <div className="mt-6 bg-red-50 border border-red-200 rounded-md p-4">
+            <div className="flex items-center">
+              <AlertCircle size={20} className="text-red-500 mr-2" />
+              <div>
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {error && (
-            <div className="mb-4 bg-red-50 border-l-4 border-red-400 p-3">
-              <div className="flex">
-                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
-                <div className="ml-3">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
+        {/* Response Display */}
+        {response && (
+          <div className="mt-6 bg-green-50 border border-green-200 rounded-md p-4">
+            <div className="flex items-center mb-3">
+              <CheckCircle size={20} className="text-green-500 mr-2" />
+              <div>
+                <h3 className="text-sm font-medium text-green-800">Response from {response.model}</h3>
               </div>
             </div>
-          )}
-
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-medium text-gray-900">Response</h3>
-            {response && (
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleCopy}
-                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  {copied ? (
-                    <>
-                      <CheckCircle size={16} className="mr-1 text-green-500" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={16} className="mr-1" />
-                      Copy
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={handleDownload}
-                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  <Download size={16} className="mr-1" />
-                  Download
-                </button>
-              </div>
-            )}
+            <div className="bg-white rounded-md p-4 border border-green-100">
+              <pre className="whitespace-pre-wrap text-sm text-gray-700">{response.text}</pre>
+            </div>
           </div>
+        )}
+      </div>
 
-          <div className="border border-gray-300 rounded-md bg-gray-50 min-h-[300px] p-4">
-            {isGenerating ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <RefreshCw className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-2" />
-                  <p className="text-gray-600">Generating response...</p>
-                  <p className="text-sm text-gray-500 mt-1">Using {MODEL_INFO[selectedModel].name}</p>
-                </div>
-              </div>
-            ) : response ? (
-              <div className="prose max-w-none">
-                <pre className="whitespace-pre-wrap text-sm text-gray-800 font-sans">
-                  {response}
-                </pre>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center text-gray-400">
-                  <Brain size={48} className="mx-auto mb-3" />
-                  <p>Enter a prompt and click "Run" to generate content</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Usage Instructions */}
+      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-md p-4">
+        <h3 className="text-sm font-medium text-blue-800 mb-2">Usage Instructions</h3>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Select your preferred GPT-5 model from the dropdown</li>
+          <li>• Enter your prompt in the textarea</li>
+          <li>• Click "Run with GPT-5" to get a response</li>
+          <li>• Responses use the OpenAI Responses API (not deprecated Chat Completions)</li>
+        </ul>
       </div>
     </div>
   );

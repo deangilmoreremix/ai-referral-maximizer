@@ -1,9 +1,9 @@
 import { corsHeaders } from '../_shared/cors.ts';
 
-interface GPT5RequestPayload {
-  messages?: Array<{ role: string; content: string }>;
-  input?: string;
-  model?: "gpt-5" | "gpt-5-mini" | "gpt-5-nano";
+interface ImageRequest {
+  prompt: string;
+  model?: 'dall-e-3' | 'dall-e-2';
+  size?: '1024x1024' | '1792x1024' | '1024x1792';
 }
 
 Deno.serve(async (req: Request) => {
@@ -29,18 +29,11 @@ Deno.serve(async (req: Request) => {
     }
 
     // Parse request body
-    const { messages, input, model }: GPT5RequestPayload = await req.json();
-    const selectedModel = model || 'gpt-5'; // Default to gpt-5
+    const { prompt, model = 'dall-e-3', size = '1024x1024' }: ImageRequest = await req.json();
 
-    // Prepare the input for OpenAI
-    let openaiInput: any;
-    if (messages && Array.isArray(messages)) {
-      openaiInput = [{ role: "user", content: messages.map(m => m.content).join('\n\n') }];
-    } else if (input) {
-      openaiInput = [{ role: "user", content: input }];
-    } else {
+    if (!prompt || prompt.trim().length === 0) {
       return new Response(
-        JSON.stringify({ error: 'Either messages or input must be provided' }),
+        JSON.stringify({ error: 'Prompt is required' }),
         {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -48,26 +41,37 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    console.log(`Calling OpenAI Responses API with model: ${selectedModel}`);
+    console.log(`Generating image with ${model}, size: ${size}`);
 
     // Import OpenAI client dynamically for Deno environment
     const { OpenAI } = await import('npm:openai@latest');
     const openai = new OpenAI({ apiKey: openaiApiKey });
 
-    // Use the Responses API for GPT models (not deprecated Chat Completions)
-    const response = await openai.responses.create({
-      model: selectedModel,
-      input: openaiInput
+    // Generate image using DALL-E
+    const response = await openai.images.generate({
+      model: model,
+      prompt: prompt.trim(),
+      size: size,
+      quality: 'standard',
+      n: 1,
     });
 
-    if (!response || !response.output_text) {
-      throw new Error('Empty response from OpenAI');
+    if (!response.data || response.data.length === 0) {
+      throw new Error('No image data returned from DALL-E');
+    }
+
+    const imageUrl = response.data[0].url;
+
+    if (!imageUrl) {
+      throw new Error('No image URL returned from DALL-E');
     }
 
     return new Response(
       JSON.stringify({
-        model: selectedModel,
-        text: response.output_text,
+        imageUrl,
+        model,
+        size,
+        prompt: prompt.trim()
       }),
       {
         status: 200,
@@ -76,7 +80,7 @@ Deno.serve(async (req: Request) => {
     );
 
   } catch (error: any) {
-    console.error('Error in OpenAI GPT-5 function:', error);
+    console.error('Error in OpenAI Images function:', error);
 
     // Handle specific error types
     let statusCode = 500;
