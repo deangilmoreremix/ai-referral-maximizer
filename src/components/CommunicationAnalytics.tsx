@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  BarChart, 
-  PieChart, 
-  Calendar, 
-  Clock, 
-  RefreshCw, 
-  ChevronDown, 
+import {
+  BarChart,
+  PieChart,
+  Calendar,
+  Clock,
+  RefreshCw,
+  ChevronDown,
   DownloadCloud,
   Phone,
   Smartphone,
@@ -18,6 +18,7 @@ import {
 import { format, subDays, subHours } from 'date-fns';
 import { useCommunication } from '../contexts/CommunicationContext';
 import { unipileService, MessageChannel } from '../services/unipileService';
+import { loadAllDataFromSupabase, syncAllDataToSupabase, isUserAuthenticated } from '../services/dataSyncService';
 
 interface CommunicationAnalyticsProps {
   onClose: () => void;
@@ -42,14 +43,87 @@ const CommunicationAnalytics: React.FC<CommunicationAnalyticsProps> = ({
     loadAnalytics();
   }, [timeframe, selectedChannel]);
 
+  // Load stored message logs from localStorage
+  const getStoredMessageLogs = () => {
+    try {
+      const stored = localStorage.getItem('message_logs');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Error loading message logs from localStorage:', error);
+      return [];
+    }
+  };
+
+  // Save message log to localStorage and sync to Supabase (can be called from other components)
+  const saveMessageLog = async (logData: {
+    channel: MessageChannel;
+    status: string;
+    to: string;
+    cost?: number;
+  }) => {
+    try {
+      const logs = getStoredMessageLogs();
+      const newLog = {
+        id: Date.now().toString(),
+        ...logData,
+        timestamp: new Date().toISOString()
+      };
+      logs.push(newLog);
+      localStorage.setItem('message_logs', JSON.stringify(logs));
+
+      // Sync to Supabase if authenticated
+      const isAuthenticated = await isUserAuthenticated();
+      if (isAuthenticated) {
+        await syncAllDataToSupabase();
+      }
+    } catch (error) {
+      console.error('Error saving message log:', error);
+    }
+  };
+
+  // Export function for other components to use
+  React.useEffect(() => {
+    (window as any).saveMessageLog = saveMessageLog;
+  }, []);
+
+  // Generate demo logs when no real data exists
+  const generateDemoLogs = (startDate?: Date) => {
+    const channels: MessageChannel[] = ['sms', 'voice', 'whatsapp', 'messenger', 'email'];
+    const statuses = ['sent', 'delivered', 'read', 'failed'];
+    const demoLogs = [];
+
+    // Generate 20-50 demo messages
+    const numMessages = Math.floor(Math.random() * 30) + 20;
+
+    for (let i = 0; i < numMessages; i++) {
+      const timestamp = startDate
+        ? new Date(startDate.getTime() + Math.random() * (Date.now() - startDate.getTime()))
+        : new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000);
+
+      demoLogs.push({
+        id: `demo-${i}`,
+        channel: channels[Math.floor(Math.random() * channels.length)],
+        status: statuses[Math.floor(Math.random() * statuses.length)],
+        to: `+1${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+        timestamp: timestamp.toISOString(),
+        cost: Math.random() * 0.1
+      });
+    }
+
+    return demoLogs;
+  };
+
   // Load analytics data
   const loadAnalytics = async () => {
     setIsLoading(true);
-    
+
     try {
-      // In a real implementation, this would fetch from the API
-      // For demo, we'll generate mock data
-      
+      // Load from Supabase if authenticated
+      const isAuthenticated = await isUserAuthenticated();
+      if (isAuthenticated) {
+        await loadAllDataFromSupabase();
+      }
+
       // Calculate start date based on selected timeframe
       let startDate: Date | undefined;
       if (timeframe !== 'all') {
@@ -57,17 +131,28 @@ const CommunicationAnalytics: React.FC<CommunicationAnalyticsProps> = ({
         else if (timeframe === '7d') startDate = subDays(new Date(), 7);
         else if (timeframe === '30d') startDate = subDays(new Date(), 30);
       }
-      
-      // Get message logs
-      const logs = await unipileService.getMessageLogs({
-        startDate,
-        channel: selectedChannel !== 'all' ? selectedChannel : undefined
-      });
-      
+
+      // Get stored message logs
+      const allLogs = getStoredMessageLogs();
+
+      // Filter logs by date and channel
+      let logs: any[] = allLogs;
+      if (startDate) {
+        logs = logs.filter((log: any) => new Date(log.timestamp) >= startDate);
+      }
+      if (selectedChannel !== 'all') {
+        logs = logs.filter((log: any) => log.channel === selectedChannel);
+      }
+
+      // If no real data, generate some demo data for demonstration
+      if (logs.length === 0) {
+        logs = generateDemoLogs(startDate);
+      }
+
       // Calculate stats
       const stats = calculateStats(logs, campaigns);
       setMessageStats(stats);
-      
+
     } catch (error) {
       console.error("Error loading analytics:", error);
     } finally {
@@ -111,11 +196,14 @@ const CommunicationAnalytics: React.FC<CommunicationAnalyticsProps> = ({
         : 0
     }));
     
-    // Time-of-day distribution (mock data for demo)
-    const hourlyDistribution = Array.from({ length: 24 }, (_, i) => ({
-      hour: i,
-      count: Math.floor(Math.random() * 10) + (i >= 8 && i <= 20 ? 10 : 0) // More messages during business hours
-    }));
+    // Time-of-day distribution from real data
+    const hourlyDistribution = Array.from({ length: 24 }, (_, i) => {
+      const hourLogs = logs.filter((log: any) => new Date(log.timestamp).getHours() === i);
+      return {
+        hour: i,
+        count: hourLogs.length
+      };
+    });
     
     // Recent activities
     const recentActivities = logs.slice(0, 10).map(log => ({

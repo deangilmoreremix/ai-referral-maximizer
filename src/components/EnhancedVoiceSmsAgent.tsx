@@ -1,33 +1,33 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Send, 
-  Mic, 
-  User, 
-  Bot, 
-  Play, 
-  Pause, 
-  Download, 
-  Copy, 
-  Clock, 
-  MessageSquare, 
-  ExternalLink, 
-  Trash2, 
-  CheckCircle, 
-  ChevronDown, 
-  ChevronUp, 
-  Loader, 
-  Volume2, 
-  Settings, 
-  Phone, 
-  FileAudio, 
-  Share2, 
+import {
+  Send,
+  Mic,
+  User,
+  Bot,
+  Play,
+  Pause,
+  Download,
+  Copy,
+  Clock,
+  MessageSquare,
+  ExternalLink,
+  Trash2,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  Loader,
+  Volume2,
+  Settings,
+  Phone,
+  FileAudio,
+  Share2,
   Smartphone,
-  List, 
-  RefreshCw, 
-  Calendar, 
-  PenTool, 
-  BookMarked, 
-  Target, 
+  List,
+  RefreshCw,
+  Calendar,
+  PenTool,
+  BookMarked,
+  Target,
   Info,
   AlertCircle,
   FileText,
@@ -37,6 +37,7 @@ import {
 import { TypeAnimation } from 'react-type-animation';
 import { generateContent } from '../services/geminiService';
 import { generateVoiceDropScript, generateSmsTemplate, generateMessagingAppTemplate } from '../services/aiEnhancementService';
+import { loadAllDataFromSupabase, syncAllDataToSupabase, isUserAuthenticated } from '../services/dataSyncService';
 
 interface Message {
   id: string;
@@ -104,24 +105,34 @@ const EnhancedVoiceSmsAgent: React.FC = () => {
     { id: 'male-3', name: 'David (Energetic Male)' }
   ];
   
-  // Demo templates (in a real app, these would come from a database)
+  // Load templates from localStorage or use demo templates as fallback
+  const getStoredTemplates = (): Template[] => {
+    try {
+      const stored = localStorage.getItem('user_templates');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Error loading templates from localStorage:', error);
+      return [];
+    }
+  };
+
   const demoTemplates: Template[] = [
     {
-      id: 't1',
+      id: 'demo-t1',
       name: 'Follow-up SMS',
       content: "Hi {{name}}, this is {{your_name}} following up about our conversation. I appreciate your interest in referring people to my business. If anyone comes to mind who might need {{service}}, please let me know!",
       type: 'sms',
       created: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
     },
     {
-      id: 't2',
+      id: 'demo-t2',
       name: 'Voice Drop Introduction',
       content: "Hello {{name}}, this is {{your_name}} from {{company}}. I'm reaching out because I'm currently accepting new clients through referrals. If you know anyone who needs {{service}}, please let me know. You can reach me at {{your_phone}}. Thanks and have a great day!",
       type: 'voice',
       created: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
     },
     {
-      id: 't3',
+      id: 'demo-t3',
       name: 'WhatsApp Referral Request',
       content: "Hi {{name}}! 👋 Hope you're doing well! I'm reaching out because I'm focusing on growing my {{business}} through referrals this month. Do you know anyone who might benefit from {{service}}? I'd really appreciate an introduction! 🙏",
       type: 'whatsapp',
@@ -129,20 +140,30 @@ const EnhancedVoiceSmsAgent: React.FC = () => {
     }
   ];
   
-  // Demo campaigns
+  // Load campaigns from localStorage or use demo campaigns as fallback
+  const getStoredCampaigns = (): SavedCampaign[] => {
+    try {
+      const stored = localStorage.getItem('user_campaigns');
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.error('Error loading campaigns from localStorage:', error);
+      return [];
+    }
+  };
+
   const demoCampaigns: SavedCampaign[] = [
     {
-      id: 'c1',
+      id: 'demo-c1',
       name: 'Client Referral Follow-up',
       messages: [
         {
-          id: 'cm1',
+          id: 'demo-cm1',
           text: "Create a sequence of 3 SMS messages to follow up with existing clients for referrals",
           sender: 'user',
           timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
         },
         {
-          id: 'cm2',
+          id: 'demo-cm2',
           text: "Here's a 3-part SMS sequence for following up with existing clients for referrals:\n\nMessage 1 (Day 1):\nHi {{name}}, it's {{your_name}}. I enjoyed working with you on {{project/service}}! I'm reaching out because I'm currently accepting new clients and value referrals from satisfied clients like you. If anyone comes to mind who might benefit from my services, I'd be grateful for an introduction. Thanks!\n\nMessage 2 (Day 5):\nHi {{name}}, just a quick follow-up about referrals. I'm specifically looking for clients who need help with {{specific_service}}. If you know anyone facing challenges in this area, I'd appreciate your recommendation. As a thank you, I'm offering {{incentive}} for each successful referral!\n\nMessage 3 (Day 10):\nHi {{name}}, I wanted to thank you for considering my referral request. To make it easier, I've created a simple way for you to refer people: just share this link {{referral_link}} or have them mention your name when they contact me. As always, I appreciate your support!",
           sender: 'bot',
           timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000 + 1000),
@@ -156,17 +177,17 @@ const EnhancedVoiceSmsAgent: React.FC = () => {
       lastEdited: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000 + 1000)
     },
     {
-      id: 'c2',
+      id: 'demo-c2',
       name: 'Voice + SMS Campaign',
       messages: [
         {
-          id: 'cm3',
+          id: 'demo-cm3',
           text: "Create a voice drop script and follow-up SMS for cold referral outreach",
           sender: 'user',
           timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
         },
         {
-          id: 'cm4',
+          id: 'demo-cm4',
           text: "Here's your voice drop script for cold referral outreach:\n\nVoice Script:\nHello {{name}}, this is {{your_name}} from {{company}}. I received your contact information from {{referral_source}} who thought my {{service}} might be valuable for you. I specialize in helping {{target_audience}} with {{specific_problem}}. I'd love to chat briefly about how I might be able to help you too. Please call me back at {{your_number}} or expect a quick follow-up text from me. Thanks and have a great day!\n\nFollow-up SMS (send 2 hours after voice drop):\nHi {{name}}, this is {{your_name}} following up on the voicemail I left earlier. {{referral_source}} suggested we connect regarding {{service}}. I'd love to schedule a quick 15-minute call this week if you're interested. Would {{day}} at {{time}} work for you? If not, please suggest a better time.",
           sender: 'bot',
           timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 + 1000),
@@ -183,10 +204,59 @@ const EnhancedVoiceSmsAgent: React.FC = () => {
     }
   ];
   
-  // Initialize demo data
+  // Initialize data from localStorage and Supabase with demo fallbacks
   useEffect(() => {
-    setTemplates(demoTemplates);
-    setSavedCampaigns(demoCampaigns);
+    const initializeData = async () => {
+      const storedTemplates = getStoredTemplates();
+      const storedCampaigns = getStoredCampaigns();
+
+      // Try to load from Supabase if user is authenticated
+      const isAuthenticated = await isUserAuthenticated();
+      if (isAuthenticated) {
+        await loadAllDataFromSupabase();
+        // Reload from localStorage after Supabase sync
+        const updatedTemplates = getStoredTemplates();
+        const updatedCampaigns = getStoredCampaigns();
+
+        // Combine with demo templates (avoid duplicates)
+        const allTemplates = [
+          ...updatedTemplates,
+          ...demoTemplates.filter(demo =>
+            !updatedTemplates.some(stored => stored.name === demo.name)
+          )
+        ];
+
+        const allCampaigns = [
+          ...updatedCampaigns,
+          ...demoCampaigns.filter(demo =>
+            !updatedCampaigns.some(stored => stored.name === demo.name)
+          )
+        ];
+
+        setTemplates(allTemplates);
+        setSavedCampaigns(allCampaigns);
+      } else {
+        // Use localStorage only with demo fallbacks
+        const allTemplates = [
+          ...storedTemplates,
+          ...demoTemplates.filter(demo =>
+            !storedTemplates.some(stored => stored.name === demo.name)
+          )
+        ];
+
+        const allCampaigns = [
+          ...storedCampaigns,
+          ...demoCampaigns.filter(demo =>
+            !storedCampaigns.some(stored => stored.name === demo.name)
+          )
+        ];
+
+        setTemplates(allTemplates);
+        setSavedCampaigns(allCampaigns);
+      }
+    };
+
+    initializeData();
   }, []);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -615,15 +685,15 @@ Be conversational but concise. Include specific examples when relevant.`;
   };
   
   // Save the current template
-  const saveTemplate = (content: string, type: 'sms' | 'voice' | 'whatsapp' | 'messenger') => {
+  const saveTemplate = async (content: string, type: 'sms' | 'voice' | 'whatsapp' | 'messenger') => {
     // Create a name based on content and type
     const defaultName = `${type.charAt(0).toUpperCase() + type.slice(1)} Template`;
-    
+
     // Prompt for name
     const name = prompt("Name your template:", defaultName);
-    
+
     if (!name) return; // User canceled
-    
+
     const newTemplate: Template = {
       id: Date.now().toString(),
       name,
@@ -631,17 +701,32 @@ Be conversational but concise. Include specific examples when relevant.`;
       type,
       created: new Date()
     };
-    
+
+    // Save to localStorage
+    try {
+      const storedTemplates = getStoredTemplates();
+      const updatedTemplates = [newTemplate, ...storedTemplates];
+      localStorage.setItem('user_templates', JSON.stringify(updatedTemplates));
+
+      // Sync to Supabase if authenticated
+      const isAuthenticated = await isUserAuthenticated();
+      if (isAuthenticated) {
+        await syncAllDataToSupabase();
+      }
+    } catch (error) {
+      console.error('Error saving template:', error);
+    }
+
     setTemplates(prev => [newTemplate, ...prev]);
   };
   
   // Save the current conversation as a campaign
-  const saveConversation = () => {
+  const saveConversation = async () => {
     // Prompt for campaign name
     const name = prompt("Name your campaign:", "New Referral Campaign");
-    
+
     if (!name) return; // User canceled
-    
+
     const newCampaign: SavedCampaign = {
       id: Date.now().toString(),
       name,
@@ -649,7 +734,22 @@ Be conversational but concise. Include specific examples when relevant.`;
       created: new Date(),
       lastEdited: new Date()
     };
-    
+
+    // Save to localStorage
+    try {
+      const storedCampaigns = getStoredCampaigns();
+      const updatedCampaigns = [newCampaign, ...storedCampaigns];
+      localStorage.setItem('user_campaigns', JSON.stringify(updatedCampaigns));
+
+      // Sync to Supabase if authenticated
+      const isAuthenticated = await isUserAuthenticated();
+      if (isAuthenticated) {
+        await syncAllDataToSupabase();
+      }
+    } catch (error) {
+      console.error('Error saving campaign:', error);
+    }
+
     setSavedCampaigns(prev => [newCampaign, ...prev]);
   };
   
@@ -988,7 +1088,7 @@ Be conversational but concise. Include specific examples when relevant.`;
                               <button
                                 className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded"
                                 title="Save as template"
-                                onClick={() => saveTemplate(message.text, message.template.type)}
+                                onClick={() => saveTemplate(message.text, message.template!.type)}
                               >
                                 <PenTool size={14} />
                               </button>

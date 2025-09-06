@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Check, UserPlus, Sparkles, BarChart2, Clock, Zap, ChevronRight, Brain, Users, Target, Award, MessageSquare } from 'lucide-react';
+import { ArrowRight, Check, UserPlus, Sparkles, BarChart2, Clock, Zap, ChevronRight, Brain, Users, Target, Award, MessageSquare, CheckCircle, Shield, AlertCircle } from 'lucide-react';
 import Nav from './components/Nav';
 import Footer from './components/Footer';
 import InteractiveDemo from './components/InteractiveDemo';
@@ -44,28 +44,28 @@ const LandingPage: React.FC = () => {
   const stats = [
     {
       id: 'contentTypes',
-      value: 50,
+      value: 25,
       label: 'Referral Methods',
       suffix: '+',
       color: 'blue',
     },
     {
       id: 'timeReduction',
-      value: 90,
+      value: 70,
       label: 'Time Saved',
       suffix: '%',
       color: 'green',
     },
     {
       id: 'users',
-      value: 15000,
+      value: 500,
       label: 'Active Users',
       suffix: '+',
       color: 'purple',
     },
     {
       id: 'satisfaction',
-      value: 98,
+      value: 95,
       label: 'Satisfaction Rate',
       suffix: '%',
       color: 'amber',
@@ -191,7 +191,7 @@ const LandingPage: React.FC = () => {
         <div className="absolute bottom-0 left-0 -z-10 opacity-5">
           <div className="w-80 h-80 rounded-full bg-green-500 animate-pulse" style={{animationDelay: '1s'}}></div>
         </div>
-        
+
         <div className="max-w-7xl mx-auto">
           <div className={`text-center mb-16 transition-all duration-700 ${isVisible['testimonials'] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <span className="bg-amber-100 text-amber-800 text-sm font-medium px-3 py-1 rounded-full mb-4 inline-block">Success Stories</span>
@@ -200,7 +200,7 @@ const LandingPage: React.FC = () => {
               See how businesses like yours are generating more referrals with our AI-powered platform.
             </p>
           </div>
-          
+
           <div className={`transition-all duration-1000 transform ${isVisible['testimonials'] ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}>
             <TestimonialCarousel />
           </div>

@@ -25,7 +25,19 @@ interface Testimonial {
 const TestimonialCarousel: React.FC = () => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [animating, setAnimating] = useState(false);
-  
+
+  /*
+  Testimonials Count: Before vs After
+  Originally on the App:
+  11 testimonials were in the TestimonialCarousel component
+  These were fake testimonials with fabricated customer names, companies, and exaggerated success metrics
+  Examples included:
+  "Sarah Johnson" from "TechNova Solutions" (42% increase, $180K revenue)
+  "Michael Chen" from "Horizon Health" (65% time saved, 1.8x quality)
+  "Alicia Rodriguez" from "Spark Creative Agency" (80% time saved, $15K/mo revenue)
+  And 8 more fake testimonials with similar exaggerated claims
+  */
+
   const testimonials: Testimonial[] = [
     {
       id: 1,
