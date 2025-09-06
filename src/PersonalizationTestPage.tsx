@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Upload, Linkedin, FileText, Check, AlertCircle, RefreshCw, User, Building2, MapPin, Briefcase, Award, GraduationCap, Clock, FileCheck, Sparkles, File, FileX, Clipboard, Target, MessageSquare, CreditCard, Send } from 'lucide-react';
+import { ArrowLeft, Upload, Linkedin, FileText, Check, AlertCircle, RefreshCw, User, Building2, MapPin, Briefcase, Award, GraduationCap, Clock, FileCheck, Sparkles, File, FileX, Clipboard, Target, MessageSquare, CreditCard, Send, Info } from 'lucide-react';
 import { analyzeFileContent } from './utils/fileAnalyzer';
 import { scrapeLinkedInProfile } from './utils/linkedInScraper';
+import { generateContent } from './services/openAIService';
 
 type TestMode = 'document' | 'linkedin';
 
@@ -100,12 +101,13 @@ const PersonalizationTestPage: React.FC = () => {
       
     } catch (error) {
       console.error('Document analysis test failed:', error);
-      addLog(`Analysis failed: ${error.message}`, 'error');
-      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      addLog(`Analysis failed: ${errorMessage}`, 'error');
+
       setTestResult({
         success: false,
         data: null,
-        error: error.message
+        error: errorMessage
       });
     } finally {
       setIsProcessing(false);
@@ -177,12 +179,13 @@ const PersonalizationTestPage: React.FC = () => {
       
     } catch (error) {
       console.error('LinkedIn scraping test failed:', error);
-      addLog(`Scraping failed: ${error.message}`, 'error');
-      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      addLog(`Scraping failed: ${errorMessage}`, 'error');
+
       setTestResult({
         success: false,
         data: null,
-        error: error.message
+        error: errorMessage
       });
     } finally {
       setIsProcessing(false);
@@ -250,101 +253,51 @@ const PersonalizationTestPage: React.FC = () => {
     return `${(endTime - startTime) / 1000} seconds`;
   };
 
-  // Generate test document for testing
-  const generateTestDocument = (type: 'tech' | 'healthcare' | 'finance') => {
-    let content = '';
-    
-    switch(type) {
-      case 'tech': 
-        content = `# Technical Requirements Document
+  // Generate test document for testing using GPT-5 APIs
+  const generateTestDocument = async (type: 'tech' | 'healthcare' | 'finance') => {
+    try {
+      setIsProcessing(true);
+      addLog(`Generating ${type} industry document using GPT-5 API...`, 'info');
 
-## Project Overview
-The software development team at TechCorp is seeking to build a cloud-based SaaS platform for enterprise customers in the technology sector. This document outlines the technical requirements and specifications.
+      // Define content type based on industry
+      const contentTypeMap = {
+        tech: 'Technical Requirements Document',
+        healthcare: 'Healthcare Services Proposal',
+        finance: 'Financial Services Overview'
+      };
 
-## Target Audience
-This solution is intended for CTOs, IT Directors, and system administrators at medium to large technology companies who need advanced data processing capabilities.
+      const contentType = contentTypeMap[type];
 
-## Business Requirements
-Our small business clients are looking for an affordable solution that can scale with their growth. The key stakeholders include:
-- Software developers
-- Product managers
-- QA engineers
+      // Generate content using the OpenAI service
+      const generatedContent = await generateContent({
+        contentType,
+        industry: type,
+        targetAudience: type === 'tech' ? 'CTOs and IT Directors' :
+                      type === 'healthcare' ? 'Healthcare administrators' :
+                      'Financial advisors and executives',
+        businessSize: 'medium',
+        specialRequirements: `Create a comprehensive ${type} industry document with realistic details, key requirements, and industry-specific terminology.`,
+        model: 'gpt-5'
+      });
 
-## Competitive Analysis
-Our main competitors include CloudTech Solutions, DataSphere, and Enterprise Systems Inc. We need to differentiate on ease of use and implementation time.
+      addLog(`Successfully generated ${type} document (${generatedContent.length} characters)`, 'success');
 
-## Key Features Required
-1. Real-time data processing
-2. Integration with existing enterprise systems
-3. Advanced security features including SSO
-4. Customizable dashboards for different user roles
-5. API access for third-party integrations
+      const blob = new Blob([generatedContent], { type: 'text/plain' });
+      const file = Object.assign(blob, {
+        name: `generated-${type}-document.txt`,
+        lastModified: Date.now(),
+      }) as File;
 
-## Technical Specifications
-The solution must be built on a microservices architecture using Kubernetes for orchestration. Performance requirements include response times under 200ms for standard operations.`;
-        break;
-      
-      case 'healthcare':
-        content = `# Healthcare Services Proposal
+      setTestFile(file);
+      addLog(`Created test file: generated-${type}-document.txt`, 'success');
 
-## Service Overview
-MediCare Solutions provides comprehensive healthcare management services to hospitals, clinics, and private practices. This proposal outlines our service offerings and implementation approach.
-
-## Target Patients
-Our services are designed to improve care delivery for patients with chronic conditions, elderly patients requiring ongoing care, and individuals seeking preventative healthcare services.
-
-## Regulatory Compliance
-All services adhere to HIPAA, HITECH, and other relevant healthcare regulations. Our enterprise-level security protocols ensure patient data protection at all times.
-
-## Service Offerings
-1. Electronic Health Records (EHR) Management
-2. Patient Engagement Solutions
-3. Revenue Cycle Management
-4. Telehealth Integration Services
-5. Healthcare Analytics and Reporting
-
-## Implementation Approach
-Our implementation follows a phased approach tailored to each healthcare facility's specific needs, with minimal disruption to ongoing patient care.
-
-## Competitive Landscape
-Key competitors in this space include HealthTech Systems, MediSoft Solutions, and CarePoint Technologies. Our unique value proposition focuses on ease of integration with existing systems and superior customer support.`;
-        break;
-      
-      case 'finance':
-        content = `# Financial Services Overview
-
-## Investment Management
-Our firm specializes in providing comprehensive financial planning and investment services to high-net-worth individuals and small to medium-sized businesses in the financial services sector.
-
-## Client Profile
-Our target audience primarily consists of C-level executives, business owners, and affluent professionals seeking sophisticated wealth management solutions. We focus on clients with investable assets exceeding $1 million.
-
-## Service Offering
-1. Portfolio Management and Investment Advisory
-2. Retirement Planning and Pension Solutions
-3. Tax-Efficient Investment Strategies
-4. Estate Planning and Wealth Transfer
-5. Risk Management and Insurance Solutions
-
-## Market Positioning
-In the competitive landscape, we distinguish ourselves from large financial institutions like Goldman Sachs, Morgan Stanley, and Merrill Lynch through our personalized approach and dedicated client service.
-
-## Regulatory Framework
-All our services comply with SEC regulations, FINRA requirements, and fiduciary standards applicable to registered investment advisors. Our enterprise compliance department ensures adherence to all regulatory updates.
-
-## Performance Metrics
-Our investment strategies have consistently outperformed market benchmarks, with our balanced portfolios achieving an average annual return of 8.7% over the past decade.`;
-        break;
-      
-      default:
-        content = 'Test document content';
+    } catch (error) {
+      console.error('Error generating test document:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      addLog(`Failed to generate ${type} document: ${errorMessage}`, 'error');
+    } finally {
+      setIsProcessing(false);
     }
-    
-    const blob = new Blob([content], { type: 'text/plain' });
-    const file = new File([blob], `test-document-${type}.txt`, { type: 'text/plain' });
-    
-    setTestFile(file);
-    addLog(`Generated test ${type} industry document`, 'success');
   };
 
   return (
@@ -396,7 +349,7 @@ Our investment strategies have consistently outperformed market benchmarks, with
               <div>
                 <h2 className="text-lg font-medium text-gray-900 mb-4">Document Analysis Testing</h2>
                 <p className="text-gray-600 mb-4">
-                  Upload a document to test the document analysis functionality. The system will extract industry, audience, key points, and other information.
+                  Upload a document to test the document analysis functionality, or generate sample documents using GPT-5 APIs. The system will extract industry, audience, key points, and other information.
                 </p>
 
                 <div className="mb-6">
@@ -420,21 +373,36 @@ Our investment strategies have consistently outperformed market benchmarks, with
                     <div className="flex gap-2">
                       <button
                         onClick={() => generateTestDocument('tech')}
-                        className="px-3 py-2 bg-indigo-50 text-indigo-700 rounded-md text-sm font-medium hover:bg-indigo-100"
+                        disabled={isProcessing}
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${
+                          isProcessing
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+                        }`}
                       >
-                        Tech Sample
+                        {isProcessing ? 'Generating...' : 'Tech Sample'}
                       </button>
                       <button
                         onClick={() => generateTestDocument('healthcare')}
-                        className="px-3 py-2 bg-green-50 text-green-700 rounded-md text-sm font-medium hover:bg-green-100"
+                        disabled={isProcessing}
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${
+                          isProcessing
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-green-50 text-green-700 hover:bg-green-100'
+                        }`}
                       >
-                        Healthcare Sample
+                        {isProcessing ? 'Generating...' : 'Healthcare Sample'}
                       </button>
                       <button
                         onClick={() => generateTestDocument('finance')}
-                        className="px-3 py-2 bg-amber-50 text-amber-700 rounded-md text-sm font-medium hover:bg-amber-100"
+                        disabled={isProcessing}
+                        className={`px-3 py-2 rounded-md text-sm font-medium ${
+                          isProcessing
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                        }`}
                       >
-                        Finance Sample
+                        {isProcessing ? 'Generating...' : 'Finance Sample'}
                       </button>
                     </div>
                   </div>

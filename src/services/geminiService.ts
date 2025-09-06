@@ -6,8 +6,8 @@ const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "YOUR_GEMINI_API_KEY";
 // Define supported models
 const MODELS = {
   "gemini-2.5-pro": "gemini-1.5-pro",
-  "gemini-2.0-flash": "gemini-1.0-pro", 
-  "gemini-2.0-flash-light": "gemini-1.0-pro-vision"
+  "gemini-2.0-flash": "gemini-1.5-flash",
+  "gemini-2.0-flash-light": "gemini-1.5-flash-8b"
 };
 
 interface ContentRequest {
@@ -40,25 +40,23 @@ export async function generateContent(request: ContentRequest): Promise<string> 
     });
     
     // Check if we should use edge function or client-side API
-    const useEdgeFunction = false; // Default to client-side API
+    const useEdgeFunction = true; // Default to edge function for security
     
     if (useEdgeFunction) {
       return await generateWithEdgeFunction(request, modelId);
     } else {
       return await generateWithClientAPI(request, modelId);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating content:", error);
-    // Always return some content, never throw - this prevents UI breaking
-    return "Failed to generate content. Please try again later.\n\nIf this problem persists, check your Gemini API key configuration or network connection.";
+    throw new Error(`Failed to generate content: ${error?.message || 'Unknown error'}`);
   }
 }
 
 async function generateWithClientAPI(request: ContentRequest, modelId: string): Promise<string> {
   // Validate API key
   if (!API_KEY || API_KEY === "YOUR_GEMINI_API_KEY") {
-    console.warn("No valid Gemini API key found. Using fallback content.");
-    return getFallbackContent(request.contentType);
+    throw new Error("Gemini API key not configured");
   }
   
   const prompt = request.isRevision 
@@ -90,10 +88,9 @@ async function generateWithClientAPI(request: ContentRequest, modelId: string): 
     }
     
     return text;
-  } catch (apiError) {
+  } catch (apiError: any) {
     console.error("Gemini API error:", apiError);
-    // Return fallback content when API fails
-    return getFallbackContent(request.contentType);
+    throw new Error(`Gemini API error: ${apiError?.message || 'Unknown error'}`);
   }
 }
 
@@ -174,13 +171,12 @@ async function generateWithEdgeFunction(request: ContentRequest, modelId: string
     }
     
     return result.content;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Edge function error:', error);
-    if (error.name === 'AbortError') {
-      return "Request timed out. The content generation is taking longer than expected. Please try again later or choose a different model.";
+    if (error?.name === 'AbortError') {
+      throw new Error("Request timed out. The content generation is taking longer than expected. Please try again later or choose a different model.");
     }
-    // Get fallback content if edge function fails
-    return getFallbackContent(request.contentType);
+    throw new Error(`Edge function error: ${error?.message || 'Unknown error'}`);
   }
 }
 
@@ -235,19 +231,4 @@ function createRevisionPrompt(request: ContentRequest): string {
   prompt += `Make specific improvements based on the instructions while maintaining the original intent and structure where appropriate. Return only the revised content without explanations or notes.`;
   
   return prompt;
-}
-
-function getFallbackContent(contentType: string): string {
-  return `[DEMO ${contentType.toUpperCase()} CONTENT]
-
-This is demonstration content created when the AI content generation service is unavailable.
-
-In a real implementation with a working API key, this would contain a professionally generated ${contentType} based on your specifications.
-
-To generate real content:
-1. Ensure you have a valid Gemini API key configured in your environment variables
-2. Check your network connection
-3. Try again or contact support if the issue persists
-
-[END OF DEMO CONTENT]`;
 }

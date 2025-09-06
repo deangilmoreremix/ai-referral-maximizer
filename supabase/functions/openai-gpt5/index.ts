@@ -54,19 +54,28 @@ Deno.serve(async (req: Request) => {
     const { OpenAI } = await import('npm:openai@latest');
     const openai = new OpenAI({ apiKey: openaiApiKey });
 
-    // Use the Responses API as requested
-    const response = await openai.responses.create({
+    // Use the Chat Completions API for GPT models
+    const response = await openai.chat.completions.create({
       model: selectedModel,
-      input: openaiInput
+      messages: [
+        {
+          role: "user",
+          content: openaiInput
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 4000
     });
 
-    if (!response) {
+    if (!response || !response.choices || response.choices.length === 0) {
       throw new Error('Empty response from OpenAI');
     }
 
-    // Access output_text directly from the Responses API response
-    // @ts-ignore - output_text is a Responses API convenience
-    const text = response.output_text || '';
+    const text = response.choices[0].message.content || '';
+
+    if (!text) {
+      throw new Error('No text generated from OpenAI API');
+    }
 
     return new Response(
       JSON.stringify({

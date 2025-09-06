@@ -7,7 +7,6 @@ import {
   Smartphone, Briefcase, Presentation, Linkedin, Facebook, Database, CheckCircle,
   AlertCircle, Bell, MessageCircle, PieChart, ListChecks, Check, Volume2
 } from 'lucide-react';
-import { generateContent } from './services/geminiService';
 import { generateContent as generateContentOpenAI } from './services/openAIService';
 import { OpenAIModel } from './types/openai';
 import Nav from './components/Nav';
@@ -26,13 +25,12 @@ import ChatbotLink from './components/ChatbotLink';
 import AdminControls from './components/AdminControls';
 import ConsultantAccelerator from './components/ConsultantAccelerator';
 import AgencyAccelerator from './components/AgencyAccelerator';
-import AIModelSelector from './components/AIModelSelector';
-import OpenAIModelSelector from './components/OpenAIModelSelector';
 import DaySelector from './components/DaySelector';
 import { supabase } from './services/supabaseClient';
 import { useOnboarding } from './components/OnboardingProvider';
 import { generatePdf } from './utils/pdfGenerator';
 import { generatePptx } from './utils/pptxGenerator';
+import { generateDocx, downloadDocx } from './utils/docxGenerator';
 
 // Define content types and their configurations
 interface ContentTypeConfig {
@@ -52,7 +50,6 @@ interface ContentStorage {
   timestamp: number;
 }
 
-type AIModel = 'gemini-2.5-pro' | 'gemini-2.0-flash' | 'gemini-2.0-flash-light';
 type RelationshipType = string | null;
 
 const App: React.FC = () => {
@@ -87,10 +84,75 @@ const App: React.FC = () => {
   const [profileData, setProfileData] = useState<any>(null);
 
   // Advanced settings
-  const [selectedModel, setSelectedModel] = useState<AIModel>('gemini-2.5-pro');
-  const [selectedOpenAIModel, setSelectedOpenAIModel] = useState<OpenAIModel>('gpt-5');
-  const [useOpenAI, setUseOpenAI] = useState<boolean>(false);
   const [relationshipType, setRelationshipType] = useState<RelationshipType>(null);
+
+  // Cost-optimized model selection based on content type
+  const getOptimalModelForContent = (contentType: string): OpenAIModel => {
+    // Low complexity - simple scripts and basic templates
+    const lowComplexity = [
+      'Phone Call Scripts',
+      'Voice Drop Scripts',
+      'Referral Email Templates',
+      'Direct Mail Templates',
+      'Gift Selection Guide'
+    ];
+
+    // Medium complexity - multi-day campaigns and standard content
+    const mediumComplexity = [
+      'Friends and Family Campaign',
+      'WhatsApp Outreach Campaigns',
+      'Facebook Group Strategies',
+      'Referral Reminder Sequences',
+      'Referral Conversation Guide',
+      'Referral Thank You System',
+      'Referral Nurturing Campaigns',
+      'Client Appreciation Events',
+      'Networking Event Strategy',
+      'Business Meeting Scripts',
+      'Referral Interview Process',
+      'Referral Reward Programs',
+      'Milestone Reward System',
+      'LinkedIn Group Engagement',
+      'Digital Community Building',
+      'Workshop & Webinar Scripts',
+      'Referral Process Documentation',
+      'Referral Lead Qualification'
+    ];
+
+    // High complexity - frameworks, strategies, and advanced content
+    const highComplexity = [
+      'Face-to-Face Meeting Guides',
+      'Zoom Meeting Templates',
+      'Screen Sharing Presentations',
+      'Tiered Incentive Structures',
+      'Multi-Level Commission Structures',
+      'Referral Tracking Systems',
+      'Client Referral Program',
+      'Partner Referral Program',
+      'Agency Service Description',
+      'Agency Pricing Structure',
+      'Client Proposal Template',
+      'Client Case Study',
+      'Client Onboarding Guide',
+      'Expertise Positioning',
+      'Service Framework',
+      'Consultant Business Model',
+      'Client Acquisition System',
+      'Delivery Process System',
+      'Follow-up System Builder',
+      'Community Leadership Positioning'
+    ];
+
+    if (lowComplexity.includes(contentType)) {
+      return 'gpt-5-nano'; // Cheapest for simple content
+    } else if (mediumComplexity.includes(contentType)) {
+      return 'gpt-5-mini'; // Balanced for standard content
+    } else if (highComplexity.includes(contentType)) {
+      return 'gpt-5'; // Full power for complex content
+    } else {
+      return 'gpt-5-mini'; // Default fallback
+    }
+  };
 
   // Local storage
   const [contentStorage, setContentStorage] = useState<Record<string, ContentStorage>>({});
@@ -630,29 +692,17 @@ const App: React.FC = () => {
     try {
       console.log(`Generating content for ${contentType}`);
       
-      // Generate content using the selected API method
-      let content: string;
-      if (useOpenAI) {
-        content = await generateContentOpenAI({
-          contentType,
-          industry,
-          targetAudience,
-          businessSize,
-          specialRequirements,
-          model: selectedOpenAIModel,
-          relationshipType
-        });
-      } else {
-        content = await generateContent({
-          contentType,
-          industry,
-          targetAudience,
-          businessSize,
-          specialRequirements,
-          model: selectedModel,
-          relationshipType
-        });
-      }
+      // Generate content using OpenAI with optimal model selection
+      const optimalModel = getOptimalModelForContent(contentType);
+      const content = await generateContentOpenAI({
+        contentType,
+        industry,
+        targetAudience,
+        businessSize,
+        specialRequirements,
+        model: optimalModel,
+        relationshipType
+      });
       
       setGeneratedContent(content);
       setShowContentPreview(true);
@@ -700,34 +750,19 @@ const App: React.FC = () => {
         throw new Error("No content to revise");
       }
       
-      let revisedContent: string;
-      if (useOpenAI) {
-        revisedContent = await generateContentOpenAI({
-          contentType: selectedContentType,
-          industry,
-          targetAudience,
-          businessSize,
-          specialRequirements,
-          originalContent: generatedContent,
-          revisionInstructions,
-          isRevision: true,
-          model: selectedOpenAIModel,
-          relationshipType
-        });
-      } else {
-        revisedContent = await generateContent({
-          contentType: selectedContentType,
-          industry,
-          targetAudience,
-          businessSize,
-          specialRequirements,
-          originalContent: generatedContent,
-          revisionInstructions,
-          isRevision: true,
-          model: selectedModel,
-          relationshipType
-        });
-      }
+      const optimalModel = getOptimalModelForContent(selectedContentType);
+      const revisedContent = await generateContentOpenAI({
+        contentType: selectedContentType,
+        industry,
+        targetAudience,
+        businessSize,
+        specialRequirements,
+        originalContent: generatedContent,
+        revisionInstructions,
+        isRevision: true,
+        model: optimalModel,
+        relationshipType
+      });
       
       setGeneratedContent(revisedContent);
       
@@ -747,7 +782,7 @@ const App: React.FC = () => {
   };
   
   // Download document
-  const handleDownloadDocument = () => {
+  const handleDownloadDocument = async () => {
     if (!selectedContentType || !generatedContent) return;
     
     const config = contentTypes[selectedContentType];
@@ -779,10 +814,9 @@ const App: React.FC = () => {
         pptx.writeFile({ fileName: `${fileName}.pptx` });
         break;
       case 'docx':
-        // In a real implementation, this would use a docx generation library
-        // For this demo, we'll just fake it with a PDF
-        const pdfForDocx = generatePdf(docTitle, selectedContentType, contentToExport);
-        pdfForDocx.save(`${fileName}.pdf`);
+        // Generate real DOCX file
+        const docxBuffer = await generateDocx(docTitle, selectedContentType, contentToExport);
+        downloadDocx(docxBuffer, `${fileName}.docx`);
         break;
       case 'xlsx':
         // In a real implementation, this would use an xlsx generation library
@@ -824,8 +858,8 @@ const App: React.FC = () => {
   };
   
   // Update model settings
-  const handleUpdateModelSettings = (settings: { model: AIModel; relationshipType: RelationshipType }) => {
-    setSelectedModel(settings.model);
+  const handleUpdateModelSettings = (settings: { model: OpenAIModel; relationshipType: RelationshipType }) => {
+    // Models are now automatically selected based on content type for cost optimization
     setRelationshipType(settings.relationshipType);
     
     // Update personalization settings in localStorage to include relationship type
@@ -922,7 +956,9 @@ const App: React.FC = () => {
               <Zap className="h-3.5 w-3.5 text-blue-500 mr-1" />
               AI Model
             </div>
-            <p className="text-lg font-bold text-blue-700">{selectedModel.replace('gemini-', 'Gemini ')}</p>
+            <p className="text-lg font-bold text-blue-700">
+              {selectedContentType ? getOptimalModelForContent(selectedContentType).replace('gpt-', 'GPT-') : 'GPT-5'}
+            </p>
           </div>
           
           <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
@@ -968,52 +1004,28 @@ const App: React.FC = () => {
               )}
             </div>
             
-            {/* AI Model selection */}
+            {/* Cost-optimized model selection - automatic */}
             <div className="mt-8">
-              {/* API Provider Toggle */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  AI Provider
-                </label>
-                <div className="flex space-x-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="aiProvider"
-                      checked={!useOpenAI}
-                      onChange={() => setUseOpenAI(false)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">Gemini (Legacy)</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="aiProvider"
-                      checked={useOpenAI}
-                      onChange={() => setUseOpenAI(true)}
-                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
-                    />
-                    <span className="ml-2 text-sm text-gray-700">OpenAI GPT-5</span>
-                  </label>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-green-800">Cost-Optimized AI Selection</h3>
+                    <div className="mt-2 text-sm text-green-700">
+                      <p>Automatically selects the most cost-effective GPT-5 model for each content type:</p>
+                      <ul className="mt-1 list-disc list-inside space-y-1">
+                        <li><strong>GPT-5 Nano:</strong> Simple scripts and basic templates</li>
+                        <li><strong>GPT-5 Mini:</strong> Standard content and multi-day campaigns</li>
+                        <li><strong>GPT-5:</strong> Complex frameworks and advanced strategies</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              {useOpenAI ? (
-                <OpenAIModelSelector 
-                  selectedModel={selectedOpenAIModel}
-                  onChange={(model) => setSelectedOpenAIModel(model)}
-                  showInfo={false}
-                  className="mb-0"
-                />
-              ) : (
-                <AIModelSelector 
-                  selectedModel={selectedModel}
-                  onChange={(model) => setSelectedModel(model)}
-                  showInfo={false}
-                  className="mb-0"
-                />
-              )}
             </div>
             
             {/* Error message */}
@@ -1224,7 +1236,7 @@ const App: React.FC = () => {
       <ModelSettingsModal
         isOpen={showModelSettings}
         onClose={() => setShowModelSettings(false)}
-        selectedModel={selectedModel}
+        selectedModel={selectedContentType ? getOptimalModelForContent(selectedContentType) : 'gpt-5'}
         relationshipType={relationshipType}
         onUpdateSettings={handleUpdateModelSettings}
       />

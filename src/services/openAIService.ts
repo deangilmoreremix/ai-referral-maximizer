@@ -1,4 +1,5 @@
 import { OpenAIModel, GPT5RequestPayload } from '../types/openai';
+import { getOptimalModelForContent } from '../../lib/openai';
 
 // Get API key from environment variables
 const API_KEY = import.meta.env.VITE_OPENAI_API_KEY || "YOUR_OPENAI_API_KEY";
@@ -19,7 +20,8 @@ interface ContentRequest {
 
 export async function generateContent(request: ContentRequest): Promise<string> {
   try {
-    const modelId = request.model || "gpt-5";
+    // Use cost-optimized model selection if no specific model requested
+    const modelId = request.model || getOptimalModelForContent(request.contentType, 'medium');
     
     console.log("Generating content with OpenAI request:", {
       contentType: request.contentType,
@@ -94,15 +96,14 @@ async function generateWithEdgeFunction(request: ContentRequest, modelId: OpenAI
     return data.text;
   } catch (error: any) {
     console.error("Edge function error:", error);
-    return getFallbackContent(request.contentType);
+    throw new Error(`Failed to generate content: ${error.message}`);
   }
 }
 
 async function generateWithClientAPI(request: ContentRequest, modelId: OpenAIModel): Promise<string> {
   // Validate API key
   if (!API_KEY || API_KEY === "YOUR_OPENAI_API_KEY") {
-    console.warn("No valid OpenAI API key found. Using fallback content.");
-    return getFallbackContent(request.contentType);
+    throw new Error("OpenAI API key not configured");
   }
   
   const prompt = request.isRevision 
@@ -112,36 +113,37 @@ async function generateWithClientAPI(request: ContentRequest, modelId: OpenAIMod
   console.log("Prompt created, sending to OpenAI API...");
   
   try {
-    // Direct OpenAI API call using Responses API
-    const response = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: modelId,
-        input: prompt
-      }),
+    // Import OpenAI client dynamically for client-side
+    const { OpenAI } = await import('openai');
+    const openai = new OpenAI({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
+
+    // Use the Chat Completions API for GPT models
+    const response = await openai.chat.completions.create({
+      model: modelId,
+      messages: [
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 4000
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || 'API request failed');
+
+    if (!response || !response.choices || response.choices.length === 0) {
+      throw new Error('Empty response from OpenAI');
     }
-    
-    const data = await response.json();
-    // @ts-ignore - output_text is a Responses API convenience
-    const text = data.output_text || '';
-    
+
+    const text = response.choices[0].message.content || '';
+
     if (!text) {
-      throw new Error('Empty response from OpenAI API');
+      throw new Error('No text generated from OpenAI API');
     }
-    
+
     return text;
-  } catch (apiError) {
+  } catch (apiError: any) {
     console.error("OpenAI API error:", apiError);
-    return getFallbackContent(request.contentType);
+    throw new Error(`OpenAI API error: ${apiError?.message || 'Unknown error'}`);
   }
 }
 
@@ -192,19 +194,4 @@ function createRevisionPrompt(request: ContentRequest): string {
   prompt += `Make specific improvements based on the instructions while maintaining the original intent and structure where appropriate. Return only the revised content without explanations or notes.`;
   
   return prompt;
-}
-
-function getFallbackContent(contentType: string): string {
-  return `[DEMO ${contentType.toUpperCase()} CONTENT]
-
-This is demonstration content created when the OpenAI API service is unavailable.
-
-In a real implementation with a working API key, this would contain professionally generated ${contentType} based on your specifications.
-
-To generate real content:
-1. Ensure you have a valid OpenAI API key configured in your environment variables
-2. Check your network connection
-3. Try again or contact support if the issue persists
-
-[END OF DEMO CONTENT]`;
 }

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { X, Settings, Info, AlertCircle } from 'lucide-react';
-import AIModelSelector, { AIModel } from './AIModelSelector';
+import OpenAIModelSelector from './OpenAIModelSelector';
+import { OpenAIModel } from '../types/openai';
 import RelationshipTypeSelector, { RelationshipType } from './RelationshipTypeSelector';
 
 interface ModelSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedModel: AIModel;
+  selectedModel: OpenAIModel;
   relationshipType: RelationshipType | null;
-  onUpdateSettings: (settings: { model: AIModel; relationshipType: RelationshipType | null }) => void;
+  onUpdateSettings: (settings: { model: OpenAIModel; relationshipType: RelationshipType | null }) => void;
 }
 
 const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
@@ -18,7 +19,7 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
   relationshipType,
   onUpdateSettings
 }) => {
-  const [model, setModel] = useState<AIModel>(selectedModel);
+  const [model, setModel] = useState<OpenAIModel>(selectedModel);
   const [relationship, setRelationship] = useState<RelationshipType | null>(relationshipType);
 
   // Update local state when props change
@@ -55,7 +56,7 @@ const ModelSettingsModal: React.FC<ModelSettingsModalProps> = ({
         
         <div className="p-6">
           <div className="space-y-6">
-            <AIModelSelector 
+            <OpenAIModelSelector
               selectedModel={model}
               onChange={setModel}
             />
