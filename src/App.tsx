@@ -5,7 +5,7 @@ import {
   Users, Clock, Calendar, UserPlus, Settings, ChevronUp, Zap, Heart, Phone,
   UserCheck, MessageSquare, Video, Target, ArrowRight, Star, Gift, FileCheck,
   Smartphone, Briefcase, Presentation, Linkedin, Facebook, Database, CheckCircle,
-  AlertCircle, Bell, MessageCircle, PieChart, ListChecks, Check, Volume2, ImageIcon
+  AlertCircle, Bell, MessageCircle, PieChart, ListChecks, Check, Volume2, ImageIcon, Edit3
 } from 'lucide-react';
 import { generateContent as generateContentOpenAI } from './services/openAIService';
 import { OpenAIModel } from './types/openai';
@@ -27,6 +27,7 @@ import ConsultantAccelerator from './components/ConsultantAccelerator';
 import AgencyAccelerator from './components/AgencyAccelerator';
 import DaySelector from './components/DaySelector';
 import ImageGenerator from './components/ImageGenerator';
+import ImageEditor from './components/ImageEditor';
 import { supabase } from './services/supabaseClient';
 import { useOnboarding } from './components/OnboardingProvider';
 import { generatePdf } from './utils/pdfGenerator';
@@ -73,6 +74,7 @@ const App: React.FC = () => {
   const [showContentPreview, setShowContentPreview] = useState(false);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [showImageGenerator, setShowImageGenerator] = useState(false);
+  const [showImageEditor, setShowImageEditor] = useState(false);
   const [scrolledPast, setScrolledPast] = useState(false);
   const [selectedDay, setSelectedDay] = useState(1);
   const [exportFormat, setExportFormat] = useState('pdf');
@@ -1158,6 +1160,21 @@ const App: React.FC = () => {
               </div>
             </button>
 
+            <button
+              onClick={() => setShowImageEditor(true)}
+              className="w-full block border border-gray-200 hover:border-gray-300 rounded-lg p-3.5 shadow-sm hover:shadow-md transition-all text-left"
+            >
+              <div className="flex items-center">
+                <div className="bg-blue-100 p-2 rounded-full mr-3">
+                  <Edit3 size={20} className="text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-gray-900">Nano Banana Image Editor</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Edit images with Gemini AI prompts</p>
+                </div>
+              </div>
+            </button>
+
             <a
               href="/csv-import"
               className="block border border-gray-200 hover:border-gray-300 rounded-lg p-3.5 shadow-sm hover:shadow-md transition-all"
@@ -1278,6 +1295,28 @@ const App: React.FC = () => {
                 contentType={selectedContentType || undefined}
                 contentTitle={selectedContentType ? contentTypes[selectedContentType]?.title : undefined}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Editor Modal */}
+      {showImageEditor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900">Nano Banana Image Editor</h2>
+              <button
+                onClick={() => setShowImageEditor(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <ImageEditor />
             </div>
           </div>
         </div>

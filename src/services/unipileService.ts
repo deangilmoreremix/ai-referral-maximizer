@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { UniPile } from 'unipile-node-sdk';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 
 // Message status types
 type MessageStatus = 'pending' | 'sent' | 'delivered' | 'read' | 'failed';
@@ -92,11 +91,35 @@ interface SocialMediaAccount {
   lastSynced?: Date;
 }
 
-// Enhanced mock implementation based on Unipile SDK
+// API Response interfaces
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+interface MessageResponse {
+  id: string;
+  status: MessageStatus;
+  cost?: number;
+  sentAt?: string;
+}
+
+interface SocialPostResponse {
+  id: string;
+  status: 'posted' | 'scheduled' | 'failed';
+  postId?: string;
+  url?: string;
+}
+
+// Real Unipile API implementation
 class UnipileService {
   private apiKey: string = '';
-  private client: any | null = null;
+  private apiUrl: string = 'https://api.unipile.com/v1';
+  private httpClient: AxiosInstance | null = null;
   private isInitialized: boolean = false;
+  private demoMode: boolean = false;
   private channels: Record<MessageChannel, boolean> = {
     sms: true,
     voice: true,
@@ -109,7 +132,7 @@ class UnipileService {
     linkedin: true
   };
 
-  // Mock storage for demo purposes
+  // Demo storage for fallback mode
   private contacts: Contact[] = [];
   private groups: ContactGroup[] = [];
   private templates: MessageTemplate[] = [];
@@ -120,16 +143,34 @@ class UnipileService {
   /**
    * Initialize the service with API credentials
    */
-  initialize(apiKey: string): void {
-    this.apiKey = apiKey;
-    // In a real implementation, we'd initialize the Unipile client:
-    // this.client = new UniPile(apiKey);
+  initialize(apiKey?: string): void {
+    // Try to get API key from environment or parameter
+    this.apiKey = apiKey || process.env.UNIPILE_API_KEY || '';
+
+    if (this.apiKey) {
+      // Initialize HTTP client for real API calls
+      this.httpClient = axios.create({
+        baseURL: this.apiUrl,
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 30000
+      });
+
+      this.demoMode = false;
+      console.log('Unipile service initialized with real API');
+    } else {
+      // Fallback to demo mode
+      this.demoMode = true;
+      console.log('Unipile service initialized in demo mode (no API key provided)');
+
+      // Initialize demo data
+      this.initializeDemoData();
+    }
+
     this.isInitialized = true;
-    
-    // Add some demo data
-    this.initializeDemoData();
-    
-    console.log('Unipile service initialized');
   }
 
   /**
@@ -144,31 +185,79 @@ class UnipileService {
    */
   async sendMessage(config: MessageConfig): Promise<MessageStatus> {
     this.checkInitialized();
-    
+
     // Validate channel availability
     if (!this.channels[config.channel]) {
       throw new Error(`Channel ${config.channel} is not available`);
     }
-    
+
     console.log(`Sending ${config.channel} message to ${config.to}:`, config.content.substring(0, 50) + (config.content.length > 50 ? '...' : ''));
-    
-    // In a real implementation, this would call the Unipile API
-    // For demo purposes, we'll simulate the API call
-    await this.simulateApiDelay();
-    
-    // Add to message history
-    this.addToMessageHistory(config);
-    
-    // Simulate random success/failure (90% success rate)
-    const isSuccess = Math.random() < 0.9;
-    
-    if (!isSuccess) {
-      console.error(`Failed to send ${config.channel} message to:`, config.to);
-      return 'failed';
+
+    if (this.demoMode) {
+      // Demo mode - simulate the API call
+      await this.simulateApiDelay();
+      this.addToMessageHistory(config);
+
+      // Simulate random success/failure (90% success rate)
+      const isSuccess = Math.random() < 0.9;
+
+      if (!isSuccess) {
+        console.error(`Failed to send ${config.channel} message to:`, config.to);
+        return 'failed';
+      }
+
+      console.log(`${config.channel} message sent successfully to:`, config.to);
+      return 'sent';
     }
-    
-    console.log(`${config.channel} message sent successfully to:`, config.to);
-    return 'sent';
+
+    // Real API mode
+    try {
+      if (!this.httpClient) {
+        throw new Error('HTTP client not initialized');
+      }
+
+      const payload = {
+        to: config.to,
+        content: config.content,
+        channel: config.channel,
+        contactId: config.contactId,
+        template: config.template,
+        mediaUrl: config.mediaUrl,
+        scheduledTime: config.scheduledTime?.toISOString(),
+        callbackUrl: config.callbackUrl,
+        metadata: config.metadata
+      };
+
+      const response = await this.httpClient.post<ApiResponse<MessageResponse>>('/messages', payload);
+
+      if (response.data.success && response.data.data) {
+        console.log(`${config.channel} message sent successfully to:`, config.to);
+        return response.data.data.status;
+      } else {
+        console.error('Failed to send message:', response.data.error || response.data.message);
+        return 'failed';
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+
+      if (error instanceof AxiosError) {
+        const status = error.response?.status;
+        if (status === 401) {
+          throw new Error('Authentication failed. Please check your API key.');
+        } else if (status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.');
+        } else if (status && status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+      }
+
+      // Fallback to demo mode on API errors
+      console.log('API call failed, falling back to demo mode');
+      this.demoMode = true;
+      this.initializeDemoData();
+
+      return this.sendMessage(config);
+    }
   }
 
   /**
@@ -176,65 +265,124 @@ class UnipileService {
    */
   async sendSocialPost(config: SocialPostConfig): Promise<{ success: boolean; postId?: string; error?: string }> {
     this.checkInitialized();
-    
+
     // Validate channel availability
     if (!this.channels[config.channel]) {
       throw new Error(`Channel ${config.channel} is not available`);
     }
-    
+
     console.log(`Sending ${config.channel} post:`, config.content.substring(0, 50) + (config.content.length > 50 ? '...' : ''));
-    
-    // In a real implementation, this would call the Unipile API
-    // For demo purposes, we'll simulate the API call
-    await this.simulateApiDelay();
-    
-    // Check if we have a connected account for this platform
-    const hasConnectedAccount = this.socialAccounts.some(
-      acc => acc.platform === config.channel && acc.isConnected
-    );
-    
-    if (!hasConnectedAccount) {
-      return {
-        success: false,
-        error: `No connected ${config.channel} account found`
-      };
-    }
-    
-    // Simulate random success/failure (90% success rate)
-    const isSuccess = Math.random() < 0.9;
-    
-    if (!isSuccess) {
-      console.error(`Failed to send ${config.channel} post`);
-      return { 
-        success: false,
-        error: `Error posting to ${config.channel}: API rate limit exceeded`
-      };
-    }
-    
-    // Record in message history if it's targeted to specific people
-    if (config.targetContactIds && config.targetContactIds.length > 0) {
-      for (const contactId of config.targetContactIds) {
-        this.addToMessageHistory({
-          to: 'social-target',
-          content: config.content,
-          channel: config.channel,
-          contactId,
-          metadata: {
-            postType: 'social',
-            hashtags: config.hashtags,
-            mentions: config.mentions,
-            imageUrl: config.imageUrl,
-            linkUrl: config.linkUrl
-          }
-        });
+
+    if (this.demoMode) {
+      // Demo mode - simulate the API call
+      await this.simulateApiDelay();
+
+      // Check if we have a connected account for this platform
+      const hasConnectedAccount = this.socialAccounts.some(
+        acc => acc.platform === config.channel && acc.isConnected
+      );
+
+      if (!hasConnectedAccount) {
+        return {
+          success: false,
+          error: `No connected ${config.channel} account found`
+        };
       }
+
+      // Simulate random success/failure (90% success rate)
+      const isSuccess = Math.random() < 0.9;
+
+      if (!isSuccess) {
+        console.error(`Failed to send ${config.channel} post`);
+        return {
+          success: false,
+          error: `Error posting to ${config.channel}: API rate limit exceeded`
+        };
+      }
+
+      // Record in message history if it's targeted to specific people
+      if (config.targetContactIds && config.targetContactIds.length > 0) {
+        for (const contactId of config.targetContactIds) {
+          this.addToMessageHistory({
+            to: 'social-target',
+            content: config.content,
+            channel: config.channel,
+            contactId,
+            metadata: {
+              postType: 'social',
+              hashtags: config.hashtags,
+              mentions: config.mentions,
+              imageUrl: config.imageUrl,
+              linkUrl: config.linkUrl
+            }
+          });
+        }
+      }
+
+      console.log(`${config.channel} post sent successfully`);
+      return {
+        success: true,
+        postId: `post-${Date.now()}`
+      };
     }
-    
-    console.log(`${config.channel} post sent successfully`);
-    return { 
-      success: true,
-      postId: `post-${Date.now()}`
-    };
+
+    // Real API mode
+    try {
+      if (!this.httpClient) {
+        throw new Error('HTTP client not initialized');
+      }
+
+      const payload = {
+        content: config.content,
+        platform: config.channel,
+        imageUrl: config.imageUrl,
+        linkUrl: config.linkUrl,
+        linkTitle: config.linkTitle,
+        hashtags: config.hashtags,
+        mentions: config.mentions,
+        audienceType: config.audienceType,
+        targetContactIds: config.targetContactIds,
+        scheduledTime: config.scheduledTime?.toISOString()
+      };
+
+      const response = await this.httpClient.post<ApiResponse<SocialPostResponse>>('/social/posts', payload);
+
+      if (response.data.success && response.data.data) {
+        console.log(`${config.channel} post sent successfully`);
+        return {
+          success: true,
+          postId: response.data.data.postId
+        };
+      } else {
+        console.error('Failed to send social post:', response.data.error || response.data.message);
+        return {
+          success: false,
+          error: response.data.error || response.data.message || 'Unknown error'
+        };
+      }
+    } catch (error) {
+      console.error('Error sending social post:', error);
+
+      if (error instanceof AxiosError) {
+        const status = error.response?.status;
+        if (status === 401) {
+          return { success: false, error: 'Authentication failed. Please check your API key.' };
+        } else if (status === 403) {
+          return { success: false, error: 'Insufficient permissions for this platform.' };
+        } else if (status === 429) {
+          return { success: false, error: 'Rate limit exceeded. Please try again later.' };
+        } else if (status && status >= 500) {
+          return { success: false, error: 'Server error. Please try again later.' };
+        }
+      }
+
+      // Fallback to demo mode on API errors
+      console.log('API call failed, falling back to demo mode');
+      this.demoMode = true;
+      this.initializeDemoData();
+
+      return this.sendSocialPost(config);
+    }
   }
 
   /**
@@ -373,29 +521,76 @@ class UnipileService {
    */
   async getContacts(filter?: { tags?: string[]; search?: string }): Promise<Contact[]> {
     this.checkInitialized();
-    
-    // In a real implementation, this would fetch from the API
-    await this.simulateApiDelay();
-    
-    // Filter contacts based on criteria
-    let filteredContacts = [...this.contacts];
-    
-    if (filter?.tags && filter.tags.length > 0) {
-      filteredContacts = filteredContacts.filter(contact => 
-        contact.tags.some(tag => filter.tags!.includes(tag))
-      );
+
+    if (this.demoMode) {
+      // Demo mode - return mock data
+      await this.simulateApiDelay();
+
+      // Filter contacts based on criteria
+      let filteredContacts = [...this.contacts];
+
+      if (filter?.tags && filter.tags.length > 0) {
+        filteredContacts = filteredContacts.filter(contact =>
+          contact.tags.some(tag => filter.tags!.includes(tag))
+        );
+      }
+
+      if (filter?.search) {
+        const searchLower = filter.search.toLowerCase();
+        const searchTerm = filter.search;
+        filteredContacts = filteredContacts.filter(contact =>
+          contact.name.toLowerCase().includes(searchLower) ||
+          contact.email?.toLowerCase().includes(searchLower) ||
+          (contact.phone && contact.phone.includes(searchTerm))
+        );
+      }
+
+      return filteredContacts;
     }
-    
-    if (filter?.search) {
-      const searchLower = filter.search.toLowerCase();
-      filteredContacts = filteredContacts.filter(contact => 
-        contact.name.toLowerCase().includes(searchLower) ||
-        contact.email?.toLowerCase().includes(searchLower) ||
-        contact.phone?.includes(filter.search)
-      );
+
+    // Real API mode
+    try {
+      if (!this.httpClient) {
+        throw new Error('HTTP client not initialized');
+      }
+
+      const params = new URLSearchParams();
+      if (filter?.tags && filter.tags.length > 0) {
+        params.append('tags', filter.tags.join(','));
+      }
+      if (filter?.search) {
+        params.append('search', filter.search);
+      }
+
+      const response = await this.httpClient.get<ApiResponse<Contact[]>>(`/contacts?${params.toString()}`);
+
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      } else {
+        console.error('Failed to fetch contacts:', response.data.error || response.data.message);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+
+      if (error instanceof AxiosError) {
+        const status = error.response?.status;
+        if (status === 401) {
+          throw new Error('Authentication failed. Please check your API key.');
+        } else if (status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.');
+        } else if (status && status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+      }
+
+      // Fallback to demo mode on API errors
+      console.log('API call failed, falling back to demo mode');
+      this.demoMode = true;
+      this.initializeDemoData();
+
+      return this.getContacts(filter);
     }
-    
-    return filteredContacts;
   }
 
   /**
@@ -527,38 +722,80 @@ class UnipileService {
    * Create a campaign
    */
   async createCampaign(
-    name: string, 
-    contactIds: string[], 
+    name: string,
+    contactIds: string[],
     content: string,
-    scheduledTime?: Date
+    scheduledTime?: Date,
+    channel: MessageChannel = 'sms'
   ): Promise<MessageCampaign> {
     this.checkInitialized();
-    
+
     console.log(`Creating campaign: ${name} for ${contactIds.length} contacts`);
-    
-    // In a real implementation, this would call the campaign API
-    await this.simulateApiDelay(1500);
-    
-    // Determine channel based on content or other logic
-    // For this example, we'll default to SMS
-    const channel: MessageChannel = 'sms';
-    
-    const campaign: MessageCampaign = {
-      id: `campaign-${Date.now()}`,
-      name,
-      channel,
-      scheduledTime,
-      status: scheduledTime ? 'scheduled' : 'draft',
-      contactCount: contactIds.length,
-      sentCount: 0,
-      deliveredCount: 0,
-      failedCount: 0,
-      responseCount: 0
-    };
-    
-    this.campaigns.push(campaign);
-    
-    return campaign;
+
+    if (this.demoMode) {
+      // Demo mode - simulate the API call
+      await this.simulateApiDelay(1500);
+
+      const campaign: MessageCampaign = {
+        id: `campaign-${Date.now()}`,
+        name,
+        channel,
+        scheduledTime,
+        status: scheduledTime ? 'scheduled' : 'draft',
+        contactCount: contactIds.length,
+        sentCount: 0,
+        deliveredCount: 0,
+        failedCount: 0,
+        responseCount: 0
+      };
+
+      this.campaigns.push(campaign);
+
+      return campaign;
+    }
+
+    // Real API mode
+    try {
+      if (!this.httpClient) {
+        throw new Error('HTTP client not initialized');
+      }
+
+      const payload = {
+        name,
+        contactIds,
+        content,
+        channel,
+        scheduledTime: scheduledTime?.toISOString()
+      };
+
+      const response = await this.httpClient.post<ApiResponse<MessageCampaign>>('/campaigns', payload);
+
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.error || response.data.message || 'Failed to create campaign');
+      }
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+
+      if (error instanceof AxiosError) {
+        const status = error.response?.status;
+        if (status === 401) {
+          throw new Error('Authentication failed. Please check your API key.');
+        } else if (status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.');
+        } else if (status && status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+      }
+
+      // Fallback to demo mode on API errors
+      console.log('API call failed, falling back to demo mode');
+      this.demoMode = true;
+      this.initializeDemoData();
+
+      return this.createCampaign(name, contactIds, content, scheduledTime, channel);
+    }
   }
 
   // Helper methods

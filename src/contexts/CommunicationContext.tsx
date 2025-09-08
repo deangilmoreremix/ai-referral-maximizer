@@ -186,12 +186,24 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
       
       // Initialize Unipile service
       if (!unipileService.isReady()) {
-        unipileService.initialize('demo-api-key');
+        const unipileApiKey = import.meta.env.VITE_UNIPILE_API_KEY || import.meta.env.UNIPILE_API_KEY;
+        if (unipileApiKey) {
+          unipileService.initialize(unipileApiKey);
+        } else {
+          console.warn('UNIPILE_API_KEY not found in environment variables. Using demo mode.');
+          unipileService.initialize('demo-api-key');
+        }
       }
-      
+
       // Initialize DropCowboy service
       if (!dropCowboyService.isReady()) {
-        dropCowboyService.initialize('demo-api-key');
+        const dropCowboyApiKey = import.meta.env.VITE_DROPCOWBOY_API_KEY || import.meta.env.DROPCOWBOY_API_KEY;
+        if (dropCowboyApiKey) {
+          dropCowboyService.initialize(dropCowboyApiKey);
+        } else {
+          console.warn('DROPCOWBOY_API_KEY not found in environment variables. Using demo mode.');
+          dropCowboyService.initialize('demo-api-key');
+        }
       }
       
       // Get available voices
@@ -325,7 +337,6 @@ export const CommunicationProvider: React.FC<{ children: ReactNode }> = ({ child
       // Create the campaign
       const campaign = await unipileService.createCampaign(
         name,
-        selectedChannel as MessageChannel,
         contactIds,
         content,
         scheduledDate
