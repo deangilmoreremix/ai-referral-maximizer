@@ -1,9 +1,5 @@
 import { OpenAI } from "openai";
 
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // set in project settings
-});
-
 // Available models - will be updated when GPT-5 is released
 export const AVAILABLE_MODELS = {
   // GPT-5 models (now available)
