@@ -7,7 +7,7 @@ import { conversationService, ConversationMessage } from './conversationService'
 import { webSearchService, WebSearchResponse } from './webSearchService';
 import { codeInterpreterService, CodeExecutionResult } from './codeInterpreterService';
 import { imageGenerationService, ImageGenerationResult } from './imageGenerationService';
-import { generateContent } from './geminiService';
+import { generateContent } from './openAIService';
 
 export interface EnhancedMessageOptions {
   contextId: string;
