@@ -92,7 +92,7 @@ class EnhancedConversationService {
         if (imagePrompt) {
           const imageResult = await imageGenerationService.generateImage({
             prompt: imagePrompt,
-            model: 'gemini'
+            model: 'dall-e-3'
           });
           generatedImages.push(imageResult);
 

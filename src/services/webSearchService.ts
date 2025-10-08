@@ -1,6 +1,11 @@
 /**
  * Web Search Service
  * Provides web search functionality for enriching conversations with real-time data
+ *
+ * IMPORTANT: This service returns placeholder data. For production use:
+ * - Integrate with Google Custom Search API, Bing Web Search, Brave Search, or SerpAPI
+ * - Add API credentials to .env file
+ * - Replace the search() method implementation with real API calls
  */
 
 export interface SearchResult {
@@ -19,39 +24,45 @@ export interface WebSearchResponse {
 class WebSearchService {
   /**
    * Perform a web search using the query
-   * Note: This is a mock implementation. In production, integrate with a real search API
+   *
+   * ⚠️ PLACEHOLDER IMPLEMENTATION
+   * This returns mock data. To enable real search:
+   * 1. Choose an API: Google Custom Search, Bing, Brave, or SerpAPI
+   * 2. Add credentials to .env
+   * 3. Replace this method with real API integration
    */
   async search(query: string): Promise<WebSearchResponse> {
-    console.log(`Performing web search for: ${query}`);
+    console.warn(`⚠️ Web search using PLACEHOLDER data for: "${query}"`);
+    console.warn('Configure a real search API for production use.');
 
     // Simulate API delay
-    await this.delay(1000);
+    await this.delay(500);
 
-    // Mock search results
-    const mockResults: SearchResult[] = [
+    // PLACEHOLDER results - replace with real API
+    const placeholderResults: SearchResult[] = [
       {
-        title: `Latest information about ${query}`,
+        title: `Search Results for "${query}" (Placeholder)`,
         url: `https://example.com/search?q=${encodeURIComponent(query)}`,
-        snippet: `Recent developments and insights about ${query}. This information is current and relevant to your query.`,
-        source: 'Example Source'
+        snippet: `⚠️ This is placeholder data. Configure a real search API to get actual results. See webSearchService.ts for integration instructions.`,
+        source: 'Placeholder'
       },
       {
-        title: `${query} - Comprehensive Guide`,
-        url: `https://guide.example.com/${query.toLowerCase().replace(/\s+/g, '-')}`,
-        snippet: `A detailed guide covering all aspects of ${query}, including best practices and recent trends.`,
-        source: 'Guide Portal'
+        title: `Reference: ${query}`,
+        url: `https://reference.example.com/${query.toLowerCase().replace(/\s+/g, '-')}`,
+        snippet: `To enable real web search: (1) Choose an API provider, (2) Add API key to .env, (3) Update webSearchService.ts`,
+        source: 'Placeholder'
       },
       {
-        title: `Top Resources for ${query}`,
+        title: `Resources about ${query}`,
         url: `https://resources.example.com/${query}`,
-        snippet: `Curated collection of the best resources, tools, and information related to ${query}.`,
-        source: 'Resource Hub'
+        snippet: `Real search results will appear here once you integrate with Google, Bing, Brave, or SerpAPI.`,
+        source: 'Placeholder'
       }
     ];
 
     return {
       query,
-      results: mockResults,
+      results: placeholderResults,
       timestamp: new Date().toISOString()
     };
   }

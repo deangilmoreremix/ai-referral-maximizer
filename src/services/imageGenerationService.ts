@@ -1,14 +1,14 @@
 /**
  * Image Generation Service
- * Integrates with existing image generation functionality
+ * Integrates with existing OpenAI DALL-E image generation
  */
 
-import { generateImage as geminiGenerateImage } from './geminiService';
+import { generateImage as dalleGenerateImage } from '../../lib/openai';
 
 export interface ImageGenerationRequest {
   prompt: string;
-  model?: 'gemini' | 'openai';
-  size?: string;
+  model?: 'dall-e-3' | 'dall-e-2';
+  size?: '1024x1024' | '1792x1024' | '1024x1792';
   quality?: string;
 }
 
@@ -21,24 +21,21 @@ export interface ImageGenerationResult {
 
 class ImageGenerationService {
   /**
-   * Generate an image from a text prompt
+   * Generate an image from a text prompt using OpenAI DALL-E
    */
   async generateImage(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
-    const { prompt, model = 'gemini' } = request;
+    const { prompt, model = 'dall-e-3', size = '1024x1024' } = request;
 
     try {
-      let imageUrl: string;
+      // Use OpenAI DALL-E for real image generation
+      const result = await dalleGenerateImage(prompt, model, size);
 
-      if (model === 'gemini') {
-        // Use existing Gemini image generation
-        imageUrl = await geminiGenerateImage(prompt);
-      } else {
-        // Placeholder for other models
-        imageUrl = await this.generatePlaceholderImage(prompt);
+      if (!result.url) {
+        throw new Error('No image URL returned from DALL-E');
       }
 
       return {
-        imageUrl,
+        imageUrl: result.url,
         prompt,
         model,
         timestamp: new Date().toISOString()
@@ -47,15 +44,6 @@ class ImageGenerationService {
       console.error('Image generation error:', error);
       throw new Error(`Failed to generate image: ${error.message}`);
     }
-  }
-
-  /**
-   * Generate a placeholder image (for development/testing)
-   */
-  private async generatePlaceholderImage(prompt: string): Promise<string> {
-    // Return a placeholder image URL based on the prompt
-    const encodedPrompt = encodeURIComponent(prompt.substring(0, 50));
-    return `https://via.placeholder.com/512x512.png?text=${encodedPrompt}`;
   }
 
   /**
