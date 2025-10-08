@@ -52,21 +52,42 @@ ALTER TABLE content_types ENABLE ROW LEVEL SECURITY;
 -- Create policies
 
 -- Users policies
-CREATE POLICY "Users can read own data"
-  ON users
-  FOR SELECT
-  TO authenticated
-  USING (auth.uid() = id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'users' AND policyname = 'Users can read own data'
+  ) THEN
+    CREATE POLICY "Users can read own data"
+      ON users
+      FOR SELECT
+      TO authenticated
+      USING (auth.uid() = id);
+  END IF;
+END $$;
 
-CREATE POLICY "Users can update own data"
-  ON users
-  FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'users' AND policyname = 'Users can update own data'
+  ) THEN
+    CREATE POLICY "Users can update own data"
+      ON users
+      FOR UPDATE
+      TO authenticated
+      USING (auth.uid() = id);
+  END IF;
+END $$;
 
 -- Content types policies (all authenticated users can read)
-CREATE POLICY "Content types are readable by all authenticated users"
-  ON content_types
-  FOR SELECT
-  TO authenticated
-  USING (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE tablename = 'content_types' AND policyname = 'Content types are readable by all authenticated users'
+  ) THEN
+    CREATE POLICY "Content types are readable by all authenticated users"
+      ON content_types
+      FOR SELECT
+      TO authenticated
+      USING (true);
+  END IF;
+END $$;
