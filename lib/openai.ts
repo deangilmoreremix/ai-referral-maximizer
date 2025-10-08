@@ -44,41 +44,41 @@ export function getOptimalModelForContent(contentType: string, complexity: 'low'
   // Content type mappings for optimal model selection
   const modelMappings: Record<string, { low: OpenAIModel; medium: OpenAIModel; high: OpenAIModel }> = {
     // Simple templates and scripts
-    'Phone Call Scripts': { low: 'gpt-3.5-turbo', medium: 'gpt-4o-mini', high: 'gpt-4o' },
-    'SMS Templates': { low: 'gpt-3.5-turbo', medium: 'gpt-3.5-turbo', high: 'gpt-4o-mini' },
-    'Voice Drop Scripts': { low: 'gpt-3.5-turbo', medium: 'gpt-4o-mini', high: 'gpt-4o' },
-    'Referral Email Templates': { low: 'gpt-3.5-turbo', medium: 'gpt-4o-mini', high: 'gpt-4o' },
-    'Direct Mail Templates': { low: 'gpt-3.5-turbo', medium: 'gpt-4o-mini', high: 'gpt-4o' },
+    'Phone Call Scripts': { low: 'gpt-5-nano', medium: 'gpt-5-mini', high: 'gpt-5' },
+    'SMS Templates': { low: 'gpt-5-nano', medium: 'gpt-5-nano', high: 'gpt-5-mini' },
+    'Voice Drop Scripts': { low: 'gpt-5-nano', medium: 'gpt-5-mini', high: 'gpt-5' },
+    'Referral Email Templates': { low: 'gpt-5-nano', medium: 'gpt-5-mini', high: 'gpt-5' },
+    'Direct Mail Templates': { low: 'gpt-5-nano', medium: 'gpt-5-mini', high: 'gpt-5' },
 
     // Multi-day campaigns (require more planning and structure)
-    'Friends and Family Campaign': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'WhatsApp Outreach Campaigns': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Facebook Group Strategies': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Referral Nurturing Campaigns': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
+    'Friends and Family Campaign': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'WhatsApp Outreach Campaigns': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Facebook Group Strategies': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Referral Nurturing Campaigns': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
 
     // Complex business strategies and frameworks
-    'Referral Reward Programs': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Tiered Incentive Structures': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Multi-Level Commission Structures': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Referral Tracking Systems': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Client Referral Program': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
+    'Referral Reward Programs': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Tiered Incentive Structures': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Multi-Level Commission Structures': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Referral Tracking Systems': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Client Referral Program': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
 
     // Agency and consulting content (high complexity)
-    'Agency Service Description': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Agency Pricing Structure': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Client Proposal Template': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Client Case Study': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Expertise Positioning': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Service Framework': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
-    'Consultant Business Model': { low: 'gpt-4o-mini', medium: 'gpt-4o', high: 'gpt-4o' },
+    'Agency Service Description': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Agency Pricing Structure': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Client Proposal Template': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Client Case Study': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Expertise Positioning': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Service Framework': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
+    'Consultant Business Model': { low: 'gpt-5-mini', medium: 'gpt-5', high: 'gpt-5' },
 
     // Content enhancement (variable complexity)
-    'Voice Drop Enhancement': { low: 'gpt-3.5-turbo', medium: 'gpt-4o-mini', high: 'gpt-4o' },
-    'SMS Enhancement': { low: 'gpt-3.5-turbo', medium: 'gpt-3.5-turbo', high: 'gpt-4o-mini' },
-    'WhatsApp Enhancement': { low: 'gpt-3.5-turbo', medium: 'gpt-4o-mini', high: 'gpt-4o' },
+    'Voice Drop Enhancement': { low: 'gpt-5-nano', medium: 'gpt-5-mini', high: 'gpt-5' },
+    'SMS Enhancement': { low: 'gpt-5-nano', medium: 'gpt-5-nano', high: 'gpt-5-mini' },
+    'WhatsApp Enhancement': { low: 'gpt-5-nano', medium: 'gpt-5-mini', high: 'gpt-5' },
 
     // Default fallback
-    'default': { low: 'gpt-3.5-turbo', medium: 'gpt-4o-mini', high: 'gpt-4o' }
+    'default': { low: 'gpt-5-nano', medium: 'gpt-5-mini', high: 'gpt-5' }
   };
 
   const mapping = modelMappings[contentType] || modelMappings['default'];

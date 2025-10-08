@@ -22,7 +22,7 @@ interface ContentEnhancementRequest {
   content: string;           // The original content to enhance
   tone?: ContentTone;        // The desired tone
   length?: ContentLength;    // The desired length
-  model: string;             // "gpt-4o" | "gpt-4o-mini" | "gpt-3.5-turbo"
+  model: string;             // "gpt-5" | "gpt-5-mini" | "gpt-5-nano"
   context?: {                // Optional context about the recipient/situation
     industry?: string;
     audienceType?: string;
@@ -86,7 +86,7 @@ export async function enhanceVoiceDropScript(request: VoiceDropEnhancementReques
   ` : '';
 
   // Model-specific prompts
-  if (request.model === 'gpt-4o') {
+  if (request.model === 'gpt-5') {
     // More detailed prompt for the most capable model
     prompt = `You are an expert in creating professional voice drop scripts that generate referrals. Please enhance the following voice drop script.
 
@@ -109,7 +109,7 @@ ${contextDescription}
 
 Provide ONLY the enhanced script without explanations, introductions, or additional notes.`;
   } 
-  else if (request.model === 'gpt-4o-mini') {
+  else if (request.model === 'gpt-5-mini') {
     // More streamlined prompt for the balanced model
     prompt = `Enhance this voice drop script for generating referrals.
 
@@ -192,7 +192,7 @@ export async function enhanceSmsMessage(request: SmsEnhancementRequest): Promise
   ` : '';
 
   // Model-specific prompts
-  if (request.model === 'gpt-4o') {
+  if (request.model === 'gpt-5') {
     // More detailed prompt for the most capable model
     prompt = `You are an expert in creating high-converting SMS messages for referral generation. Please enhance the following SMS message.
 
@@ -216,7 +216,7 @@ ${contextDescription}
 
 Provide ONLY the enhanced SMS message without explanations, introductions, or character counts.`;
   } 
-  else if (request.model === 'gpt-4o-mini') {
+  else if (request.model === 'gpt-5-mini') {
     // More streamlined prompt for the balanced model
     prompt = `Enhance this SMS message for referral generation.
 
@@ -303,7 +303,7 @@ export async function enhanceMessagingAppContent(request: SmsEnhancementRequest)
   ` : '';
 
   // Model-specific prompts
-  if (request.model === 'gpt-4o') {
+  if (request.model === 'gpt-5') {
     // More detailed prompt for the most capable model
     prompt = `You are an expert in creating high-converting WhatsApp and Messenger messages for referral generation. Please enhance the following messaging app message.
 
@@ -327,7 +327,7 @@ ${contextDescription}
 
 Provide ONLY the enhanced messaging app message without explanations, introductions, or character counts.`;
   } 
-  else if (request.model === 'gpt-4o-mini') {
+  else if (request.model === 'gpt-5-mini') {
     // More streamlined prompt for the balanced model
     prompt = `Enhance this WhatsApp/Messenger message for referral generation.
 
@@ -419,7 +419,7 @@ export async function generateVoiceDropScript(
     Special Instructions: ${context.specialInstructions || 'None'}
   ` : '';
 
-  if (model === 'gpt-4o') {
+  if (model === 'gpt-5') {
     prompt = `Create a professional voice drop script for requesting referrals.
 
 SCRIPT TYPE:
@@ -443,7 +443,7 @@ ${contextInfo}
 
 Create only the voice drop script with no additional explanation or notes.`;
   }
-  else if (model === 'gpt-4o-mini') {
+  else if (model === 'gpt-5-mini') {
     prompt = `Create a ${tone} voice drop script for ${referralType} referrals.
     
 Length: ${length}
@@ -459,7 +459,7 @@ ${contextInfo}
 
 Write conversational script only.`;
   }
-  else { // gpt-3.5-turbo (cheapest)
+  else { // gpt-5-nano (cheapest)
     prompt = `Write ${tone} voice script for ${referralType} referrals.
 ${length} length.
 Use {{name}}, {{your_name}}, {{company}}.
@@ -504,7 +504,7 @@ export async function generateSmsTemplate(
     Special Instructions: ${context.specialInstructions || 'None'}
   ` : '';
 
-  if (model === 'gpt-4o') {
+  if (model === 'gpt-5') {
     prompt = `Create an effective SMS template for requesting referrals.
 
 SMS TYPE:
@@ -527,7 +527,7 @@ ${contextInfo}
 
 Create only the SMS text with no additional explanation or notes.`;
   }
-  else if (model === 'gpt-4o-mini') {
+  else if (model === 'gpt-5-mini') {
     prompt = `Create a ${tone} SMS template for ${referralType} referrals.
     
 Requirements:
@@ -540,7 +540,7 @@ ${contextInfo}
 
 Write SMS text only.`;
   }
-  else { // gpt-3.5-turbo (cheapest)
+  else { // gpt-5-nano (cheapest)
     prompt = `Write ${tone} SMS for ${referralType} referrals.
 Under 160 characters.
 ${includeEmojis ? 'Use emojis.' : 'No emojis.'}
@@ -585,7 +585,7 @@ export async function generateMessagingAppTemplate(
     Special Instructions: ${context.specialInstructions || 'None'}
   ` : '';
 
-  if (model === 'gpt-4o') {
+  if (model === 'gpt-5') {
     prompt = `Create an effective WhatsApp/Messenger template for requesting referrals.
 
 MESSAGE TYPE:
@@ -608,7 +608,7 @@ ${contextInfo}
 
 Create only the WhatsApp/Messenger text with no additional explanation or notes.`;
   }
-  else if (model === 'gpt-4o-mini') {
+  else if (model === 'gpt-5-mini') {
     prompt = `Create a ${tone} WhatsApp template for ${referralType} referrals.
     
 Style:
@@ -622,7 +622,7 @@ ${contextInfo}
 
 Write WhatsApp message only.`;
   }
-  else { // gpt-3.5-turbo (cheapest)
+  else { // gpt-5-nano (cheapest)
     prompt = `Write ${tone} WhatsApp message for ${referralType} referrals.
 ${includeEmojis ? 'Use 2-3 emojis.' : 'No emojis.'}
 Use {{name}} variable.
