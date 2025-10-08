@@ -7,7 +7,8 @@ const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "YOUR_GEMINI_API_KEY";
 const MODELS = {
   "gemini-2.5-pro": "gemini-1.5-pro",
   "gemini-2.0-flash": "gemini-1.5-flash",
-  "gemini-2.0-flash-light": "gemini-1.5-flash-8b"
+  "gemini-2.0-flash-light": "gemini-1.5-flash-8b",
+  "gemini-2.0-flash-exp": "gemini-2.0-flash-exp"
 };
 
 interface ContentRequest {
@@ -27,7 +28,7 @@ interface ContentRequest {
 export async function generateContent(request: ContentRequest): Promise<string> {
   try {
     // Set default model if not specified
-    const modelId = request.model || "gemini-2.5-pro";
+    const modelId = request.model || "gemini-2.0-flash-exp";
     
     console.log("Generating content with request:", {
       contentType: request.contentType,
@@ -69,7 +70,7 @@ async function generateWithClientAPI(request: ContentRequest, modelId: string): 
   const genAI = new GoogleGenerativeAI(API_KEY);
   
   // Map the model ID to the actual model name
-  const modelName = MODELS[modelId as keyof typeof MODELS] || "gemini-1.5-pro";
+  const modelName = MODELS[modelId as keyof typeof MODELS] || "gemini-2.0-flash-exp";
   console.log(`Using Gemini model: ${modelName}`);
   
   const model = genAI.getGenerativeModel({ model: modelName });
@@ -176,7 +177,22 @@ async function generateWithEdgeFunction(request: ContentRequest, modelId: string
     if (error?.name === 'AbortError') {
       throw new Error("Request timed out. The content generation is taking longer than expected. Please try again later or choose a different model.");
     }
-    throw new Error(`Edge function error: ${error?.message || 'Unknown error'}`);
+
+    // Extract more useful error information
+    let errorMessage = error?.message || 'Unknown error';
+
+    // Check if this is a fetch error
+    if (errorMessage.includes('fetch')) {
+      errorMessage = 'Unable to connect to the content generation service. Please check your internet connection.';
+    } else if (errorMessage.includes('404') || errorMessage.includes('not found')) {
+      errorMessage = 'The AI model is not available. Please try selecting a different model from the settings.';
+    } else if (errorMessage.includes('401') || errorMessage.includes('unauthorized')) {
+      errorMessage = 'Invalid API key. Please check your Gemini API key in the settings.';
+    } else if (errorMessage.includes('429')) {
+      errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
+    }
+
+    throw new Error(errorMessage);
   }
 }
 

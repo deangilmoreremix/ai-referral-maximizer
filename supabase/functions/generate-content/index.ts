@@ -19,7 +19,6 @@ function createPrompt(request: ContentRequest): string {
 
   let prompt = `Generate a professional, well-structured ${contentType}.\n\n`;
 
-  // Add personalization if available
   if (industry) {
     prompt += `Industry: ${industry}\n`;
   }
@@ -36,17 +35,14 @@ function createPrompt(request: ContentRequest): string {
     prompt += `Special Requirements/Details: ${specialRequirements}\n\n`;
   }
 
-  // Add analysis data for context if available
   if (analysisData) {
     prompt += `Use the following analysis data for context:\n${JSON.stringify(analysisData, null, 2)}\n\n`;
   }
 
-  // Add relationship context if available
   if (request.relationshipType) {
     prompt += `Relationship Context: ${request.relationshipType}\n\n`;
   }
 
-  // Additional instructions for quality
   prompt += `The content should be:\n- Professional and polished\n- Specific and actionable\n- Using best practices for this type of content\n- Ready to use without further editing`;
 
   return prompt;
@@ -68,7 +64,6 @@ function createRevisionPrompt(request: ContentRequest): string {
 }
 
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,
@@ -77,7 +72,6 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // Get Gemini API key from headers (passed from client)
     const geminiApiKey = req.headers.get('x-gemini-api-key');
     if (!geminiApiKey) {
       return new Response(
@@ -89,7 +83,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Parse request body
     const request: ContentRequest = await req.json();
 
     if (!request.contentType) {
@@ -102,32 +95,28 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Get model from headers or use default
-    const modelId = req.headers.get('x-model-id') || 'gemini-2.5-pro';
+    const modelId = req.headers.get('x-model-id') || 'gemini-2.0-flash-exp';
 
-    // Map model ID to actual Gemini model name
     const modelMapping: Record<string, string> = {
       'gemini-2.5-pro': 'gemini-1.5-pro',
       'gemini-2.0-flash': 'gemini-1.5-flash',
-      'gemini-2.0-flash-light': 'gemini-1.5-flash-8b'
+      'gemini-2.0-flash-light': 'gemini-1.5-flash-8b',
+      'gemini-2.0-flash-exp': 'gemini-2.0-flash-exp'
     };
 
-    const modelName = modelMapping[modelId] || 'gemini-1.5-pro';
+    const modelName = modelMapping[modelId] || 'gemini-2.0-flash-exp';
 
     console.log(`Generating content with Gemini model: ${modelName}`);
 
-    // Create the prompt
     const prompt = request.isRevision
       ? createRevisionPrompt(request)
       : createPrompt(request);
 
-    // Import Google Generative AI
     const { GoogleGenerativeAI } = await import('npm:@google/generative-ai@latest');
     const genAI = new GoogleGenerativeAI(geminiApiKey);
 
     const model = genAI.getGenerativeModel({ model: modelName });
 
-    // Generate content
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
@@ -153,17 +142,24 @@ Deno.serve(async (req: Request) => {
   } catch (error: any) {
     console.error('Error in generate-content function:', error);
 
-    // Handle specific error types
     let statusCode = 500;
-    if (error.message?.includes('API_KEY')) {
+    let errorMessage = error.message || 'Internal server error';
+    
+    if (error.message?.includes('API_KEY') || error.message?.includes('API key')) {
       statusCode = 401;
+      errorMessage = 'Invalid or missing Gemini API key. Please check your API key configuration.';
     } else if (error.message?.includes('quota') || error.message?.includes('rate limit')) {
       statusCode = 429;
+      errorMessage = 'API rate limit exceeded. Please try again later.';
+    } else if (error.message?.includes('not found') || error.message?.includes('404')) {
+      statusCode = 400;
+      errorMessage = 'The requested AI model is not available. Please try a different model.';
     }
 
     return new Response(
       JSON.stringify({
-        error: error.message || 'Internal server error',
+        error: errorMessage,
+        details: error.message
       }),
       {
         status: statusCode,
