@@ -82,20 +82,7 @@ const Nav: React.FC<NavProps> = ({ current }) => {
               <Sparkles size={16} className="mr-0 md:mr-2" />
               <span className="hidden md:inline">Super Creator</span>
             </Link>
-            
-            <Link
-              to="/voice-sms"
-              className={`flex items-center px-2 py-1 md:px-3 md:py-2 text-sm font-medium rounded-md transition-colors ${
-                current === 'chatbot'
-                  ? 'bg-green-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-              title="Voice & SMS"
-            >
-              <MessageSquare size={16} className="mr-0 md:mr-2" />
-              <span className="hidden md:inline">Voice & SMS</span>
-            </Link>
-            
+
             <Link
               to="/consultant"
               className={`flex items-center px-2 py-1 md:px-3 md:py-2 text-sm font-medium rounded-md transition-colors ${

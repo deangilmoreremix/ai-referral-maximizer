@@ -102,33 +102,6 @@ const WorkflowTimeline: React.FC = () => {
         "Industry-specific terminology",
         "Professional formatting"
       ]
-    },
-    {
-      id: 4,
-      title: "Export & Use",
-      description: "Download your referral content in multiple formats including PDF, PowerPoint, or Word. Ready to share with clients or team members.",
-      icon: <Download size={20} className="text-indigo-600" />,
-      imageSrc: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=600&q=80",
-      detailedSteps: [
-        {
-          title: "Fine-tune (Optional)",
-          description: "Use the revision feature to make specific changes or adjustments to the content."
-        },
-        {
-          title: "Select Export Format",
-          description: "Choose from PDF, PowerPoint, Word, or other format options depending on content type."
-        },
-        {
-          title: "Download and Share",
-          description: "Download your finished content in your preferred format, ready to use or further customize."
-        }
-      ],
-      timeRequired: "5-10 seconds",
-      benefits: [
-        "Multiple export formats",
-        "Ready-to-use documents",
-        "Professional design and layout"
-      ]
     }
   ];
   
@@ -377,40 +350,18 @@ const WorkflowTimeline: React.FC = () => {
               </div>
             )}
             
-            {activeStep === 4 && (
-              <div className="absolute top-4 right-4 bg-white rounded-lg shadow-md p-2 text-sm text-gray-800 max-w-[160px] transform -rotate-1">
-                <div className="flex items-center text-indigo-600 font-medium mb-1">
-                  <Download size={14} className="mr-1" />
-                  Export Options
-                </div>
-                <ul className="text-xs space-y-1">
-                  <li className="flex items-center">
-                    <FileType size={10} className="text-red-500 mr-1" />
-                    PDF Document
-                  </li>
-                  <li className="flex items-center">
-                    <FileType size={10} className="text-blue-500 mr-1" />
-                    Word Document (DOCX)
-                  </li>
-                  <li className="flex items-center">
-                    <FileType size={10} className="text-orange-500 mr-1" />
-                    PowerPoint (PPTX)
-                  </li>
-                </ul>
-              </div>
-            )}
           </div>
         </div>
-        
+
         {/* Timeline Bottom Navigation */}
         <div className="bg-gray-50 border-t border-gray-200 p-4 flex justify-between items-center">
           <div className="text-xs text-gray-500 flex items-center">
             <Clock size={14} className="mr-1 text-green-600" />
             <span>Total process time: ~2 minutes</span>
           </div>
-          
+
           <div className="flex space-x-3">
-            {activeStep < 4 ? (
+            {activeStep < 3 ? (
               <button 
                 onClick={() => setActiveStep(activeStep + 1)}
                 className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md flex items-center transition-colors"

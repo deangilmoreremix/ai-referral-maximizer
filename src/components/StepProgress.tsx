@@ -19,10 +19,9 @@ const StepProgress: React.FC<StepProgressProps> = ({ currentStep }) => {
     { id: 2, title: "AI Settings", path: "/ai-settings" },
     { id: 3, title: "Content Generator", path: "/content-generator" },
     { id: 4, title: "Super Creator", path: "/super-creator" },
-    { id: 5, title: "Voice & SMS", path: "/voice-sms" },
-    { id: 6, title: "Consultant", path: "/consultant" },
-    { id: 7, title: "Agency", path: "/agency" },
-    { id: 8, title: "Dashboard", path: "/dashboard" }
+    { id: 5, title: "Consultant", path: "/consultant" },
+    { id: 6, title: "Agency", path: "/agency" },
+    { id: 7, title: "Dashboard", path: "/dashboard" }
   ];
   
   return (

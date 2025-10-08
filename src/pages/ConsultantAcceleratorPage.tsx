@@ -14,15 +14,15 @@ const ConsultantAcceleratorPage: React.FC = () => {
       navCurrent="consultant"
     >
       {/* Step Progress indicator */}
-      <StepProgress currentStep={6} />
-      
+      <StepProgress currentStep={5} />
+
       <div className="mb-6 flex justify-between">
         <Link
-          to="/voice-sms"
+          to="/super-creator"
           className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 flex items-center"
         >
           <ArrowLeft size={16} className="mr-2" />
-          Back to Voice & SMS Tools
+          Back to Super Content Creator
         </Link>
         
         <Link

@@ -14,7 +14,7 @@ const AgencyAcceleratorPage: React.FC = () => {
       navCurrent="agency"
     >
       {/* Step Progress indicator */}
-      <StepProgress currentStep={7} />
+      <StepProgress currentStep={6} />
       
       <div className="mb-6 flex justify-between">
         <Link

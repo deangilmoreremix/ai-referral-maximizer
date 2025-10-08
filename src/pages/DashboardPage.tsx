@@ -13,7 +13,7 @@ const DashboardPage: React.FC = () => {
       navCurrent="dashboard"
     >
       {/* Step Progress indicator */}
-      <StepProgress currentStep={8} />
+      <StepProgress currentStep={7} />
       
       <div className="mb-6 flex justify-between">
         <Link

@@ -23,24 +23,24 @@ const SuperContentPage: React.FC = () => {
           <ArrowLeft size={16} className="mr-2" />
           Back to Content Generator
         </Link>
-        
+
         <Link
-          to="/voice-sms"
+          to="/consultant"
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center"
         >
-          Next: Voice & SMS Tools
+          Next: Consultant Business Accelerator
           <ArrowRight size={16} className="ml-2" />
         </Link>
       </div>
-      
+
       <SuperContentCreator />
-      
+
       <div className="mt-6 flex justify-end">
         <Link
-          to="/voice-sms"
+          to="/consultant"
           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center"
         >
-          Next: Voice & SMS Tools
+          Next: Consultant Business Accelerator
           <ArrowRight size={16} className="ml-2" />
         </Link>
       </div>

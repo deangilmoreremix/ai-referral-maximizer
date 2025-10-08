@@ -26,7 +26,6 @@ const Footer: React.FC = () => {
             <h3 className="text-xs font-semibold text-gray-400 tracking-wider uppercase mb-1">Tools</h3>
             <ul className="space-y-1">
               <li><Link to="/super-creator" className="text-xs text-gray-300 hover:text-white flex items-center"><Sparkles size={12} className="mr-1" />Super Creator</Link></li>
-              <li><Link to="/voice-sms" className="text-xs text-gray-300 hover:text-white flex items-center"><MessageSquare size={12} className="mr-1" />Voice & SMS</Link></li>
               <li><Link to="/consultant" className="text-xs text-gray-300 hover:text-white flex items-center"><Briefcase size={12} className="mr-1" />Consultant</Link></li>
               <li><Link to="/agency" className="text-xs text-gray-300 hover:text-white flex items-center"><Building2 size={12} className="mr-1" />Agency</Link></li>
               <li><Link to="/dashboard" className="text-xs text-gray-300 hover:text-white flex items-center"><LayoutDashboard size={12} className="mr-1" />Dashboard</Link></li>

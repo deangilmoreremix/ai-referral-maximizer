@@ -5,7 +5,7 @@ import {
   Users, Clock, Calendar, UserPlus, Settings, ChevronUp, Zap, Heart, Phone,
   UserCheck, MessageSquare, Video, Target, ArrowRight, Star, Gift, FileCheck,
   Smartphone, Briefcase, Presentation, Linkedin, Facebook, Database, CheckCircle,
-  AlertCircle, Bell, MessageCircle, PieChart, ListChecks, Check, Volume2, ImageIcon, Edit3
+  AlertCircle, Bell, MessageCircle, PieChart, ListChecks, Check, ImageIcon, Edit3
 } from 'lucide-react';
 import { generateContent as generateContentOpenAI } from './services/openAIService';
 import { OpenAIModel } from './types/openai';
@@ -95,7 +95,6 @@ const App: React.FC = () => {
     // Low complexity - simple scripts and basic templates
     const lowComplexity = [
       'Phone Call Scripts',
-      'Voice Drop Scripts',
       'Referral Email Templates',
       'Direct Mail Templates',
       'Gift Selection Guide'
@@ -226,14 +225,6 @@ const App: React.FC = () => {
       icon: <Mail size={24} className="text-red-500" />,
       title: 'Referral Email Templates',
       description: 'Professional email templates for requesting and following up on referrals.',
-      category: 'direct-outreach',
-      exportOptions: ['pdf', 'docx']
-    },
-    'Voice Drop Scripts': {
-      type: 'Voice Drop Scripts',
-      icon: <Volume2 size={24} className="text-indigo-500" />,
-      title: 'Voice Drop Scripts',
-      description: 'Professional voice message scripts for leaving engaging referral requests via voicemail.',
       category: 'direct-outreach',
       exportOptions: ['pdf', 'docx']
     },
