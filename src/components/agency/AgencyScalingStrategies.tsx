@@ -5,7 +5,7 @@ import {
   Clock, Target, UserPlus, Zap, Award, Share2, Briefcase, RefreshCw,
   Building2
 } from 'lucide-react';
-import { generateContent } from '../../services/geminiService';
+import { generateContent } from '../../services/openAIService';
 
 interface ScalingStrategy {
   id: string;

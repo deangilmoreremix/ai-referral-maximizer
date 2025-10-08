@@ -4,7 +4,7 @@ import {
   CheckCircle, MessageSquare, Phone, Mail, Globe, ArrowRight, Briefcase, AlertCircle, 
   Download, BarChart2, Clock
 } from 'lucide-react';
-import { generateContent } from '../../services/geminiService';
+import { generateContent } from '../../services/openAIService';
 
 interface ClientCampaign {
   id: string;

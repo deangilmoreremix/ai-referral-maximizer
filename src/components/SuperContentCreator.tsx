@@ -6,7 +6,7 @@ import {
   ArrowRight, Plus, RefreshCw, AlertCircle, FileCheck, Download,
   Copy, X, ChevronUp, ImageIcon
 } from 'lucide-react';
-import { generateContent } from '../services/geminiService';
+import { generateContent } from '../services/openAIService';
 import ImageGenerator from './ImageGenerator';
 
 interface ReferralMethod {

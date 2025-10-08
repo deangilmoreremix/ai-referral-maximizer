@@ -3,7 +3,7 @@ import {
   Brain, Award, ArrowRight, ChevronRight, Target, Briefcase, BarChart2, Users, Zap,
   CheckCircle, Calendar, MessageSquare, FileText, PenTool, User, Mail, Phone, Globe2, Building2
 } from 'lucide-react';
-import { generateContent } from '../services/geminiService';
+import { generateContent } from '../services/openAIService';
 import { useConsultant } from '../contexts/ConsultantContext';
 import ConsultantPreview from './consultant/ConsultantPreview';
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Zap, ChevronDown, ChevronUp, MessageSquare, Copy, Check, Download, Brain, Clock, Info, AlertCircle, RefreshCw, LayoutDashboard, CheckCircle } from 'lucide-react';
-import { generateContent } from '../../services/geminiService';
+import { generateContent } from '../../services/openAIService';
 
 type AIModel = 'gemini-2.5-pro' | 'gemini-2.0-flash' | 'gemini-2.0-flash-light';
 

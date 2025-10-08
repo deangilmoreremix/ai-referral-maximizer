@@ -33,12 +33,11 @@ export async function generateContent(request: ContentRequest): Promise<string> 
       hasRelationshipType: !!request.relationshipType
     });
     
-    // Check if we should use edge function or client-side API
-    const useEdgeFunction = true; // Default to edge function for security
-    
-    if (useEdgeFunction) {
+    // Try Edge Function first, fall back to client-side if it fails
+    try {
       return await generateWithEdgeFunction(request, modelId);
-    } else {
+    } catch (edgeError: any) {
+      console.warn('Edge Function failed, trying client-side API:', edgeError.message);
       return await generateWithClientAPI(request, modelId);
     }
   } catch (error) {
@@ -105,45 +104,51 @@ async function generateWithClientAPI(request: ContentRequest, modelId: OpenAIMod
   if (!API_KEY || API_KEY === "YOUR_OPENAI_API_KEY") {
     throw new Error("OpenAI API key not configured");
   }
-  
-  const prompt = request.isRevision 
+
+  const prompt = request.isRevision
     ? createRevisionPrompt(request)
     : createPrompt(request);
-  
-  console.log("Prompt created, sending to OpenAI API...");
-  
+
+  console.log("Prompt created, sending to OpenAI Responses API...");
+
   try {
     // Import OpenAI client dynamically for client-side
     const { OpenAI } = await import('openai');
     const openai = new OpenAI({ apiKey: API_KEY, dangerouslyAllowBrowser: true });
 
-    // Use the Chat Completions API for GPT models
-    const response = await openai.chat.completions.create({
+    // Use the Responses API for GPT-5 models
+    const response = await openai.responses.create({
       model: modelId,
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 4000
+      input: [{ role: "user", content: prompt }]
     });
 
-    if (!response || !response.choices || response.choices.length === 0) {
+    if (!response || !response.output_text) {
       throw new Error('Empty response from OpenAI');
     }
 
-    const text = response.choices[0].message.content || '';
+    const text = response.output_text;
 
     if (!text) {
-      throw new Error('No text generated from OpenAI API');
+      throw new Error('No text generated from OpenAI Responses API');
     }
+
+    console.log(`Content generated successfully using ${response.model || modelId}`);
 
     return text;
   } catch (apiError: any) {
     console.error("OpenAI API error:", apiError);
-    throw new Error(`OpenAI API error: ${apiError?.message || 'Unknown error'}`);
+
+    // Provide helpful error messages
+    let errorMessage = apiError?.message || 'Unknown error';
+    if (apiError?.status === 401) {
+      errorMessage = 'Invalid OpenAI API key. Please check your configuration.';
+    } else if (apiError?.status === 429) {
+      errorMessage = 'Rate limit exceeded. Please try again in a moment.';
+    } else if (apiError?.status === 404) {
+      errorMessage = 'Model not available. The API endpoint or model may not exist.';
+    }
+
+    throw new Error(`OpenAI API error: ${errorMessage}`);
   }
 }
 

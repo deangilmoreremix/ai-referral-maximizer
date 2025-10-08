@@ -35,7 +35,7 @@ import {
   Zap
 } from 'lucide-react';
 import { TypeAnimation } from 'react-type-animation';
-import { generateContent } from '../services/geminiService';
+import { generateContent } from '../services/openAIService';
 import { generateVoiceDropScript, generateSmsTemplate, generateMessagingAppTemplate } from '../services/aiEnhancementService';
 import { loadAllDataFromSupabase, syncAllDataToSupabase, isUserAuthenticated } from '../services/dataSyncService';
 

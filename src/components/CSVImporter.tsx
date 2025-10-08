@@ -17,7 +17,7 @@ import {
   Building,
   Briefcase
 } from 'lucide-react';
-import { generateContent } from '../services/geminiService';
+import { generateContent } from '../services/openAIService';
 import { generatePdf } from '../utils/pdfGenerator';
 import CSVColumnMapper from './CSVColumnMapper';
 import CSVBatchPreview from './CSVBatchPreview';
