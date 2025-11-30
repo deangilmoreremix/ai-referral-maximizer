@@ -703,22 +703,70 @@ const App: React.FC = () => {
       setShowContentPreview(true);
       setSavedToDatabase(false);
       
-      // Optionally save to database
-      const shouldSaveToDb = true;
-      if (shouldSaveToDb) {
-        setIsSavingToDatabase(true);
-        try {
-          // Here you would call your database save function
-          // For example: await saveToDatabase(contentType, content);
-          
-          // Simulating a database save operation
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          setSavedToDatabase(true);
-        } catch (error) {
-          console.error("Error saving to database:", error);
-        } finally {
-          setIsSavingToDatabase(false);
+      // Save to Supabase database
+      setIsSavingToDatabase(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session) {
+          // Get or create content type ID
+          const { data: contentTypeData } = await supabase
+            .from('content_types')
+            .select('id')
+            .eq('name', contentType)
+            .maybeSingle();
+
+          let contentTypeId = contentTypeData?.id;
+
+          // If content type doesn't exist, create it
+          if (!contentTypeId) {
+            const { data: newContentType, error: insertError } = await supabase
+              .from('content_types')
+              .insert([{
+                name: contentType,
+                category: contentTypes[contentType]?.category || 'other',
+                has_multiple_days: contentType.toLowerCase().includes('campaign'),
+                export_options: contentTypes[contentType]?.exportOptions || []
+              }])
+              .select('id')
+              .single();
+
+            if (insertError) {
+              console.error("Error creating content type:", insertError);
+            } else {
+              contentTypeId = newContentType?.id;
+            }
+          }
+
+          // Save the generated content
+          if (contentTypeId) {
+            const { error: saveError } = await supabase
+              .from('generated_content')
+              .insert([{
+                user_id: session.user.id,
+                content_type_id: contentTypeId,
+                content: content,
+                metadata: {
+                  industry,
+                  targetAudience,
+                  businessSize,
+                  specialRequirements,
+                  relationshipType,
+                  model: optimalModel
+                }
+              }]);
+
+            if (saveError) {
+              console.error("Error saving content:", saveError);
+            } else {
+              setSavedToDatabase(true);
+            }
+          }
         }
+      } catch (error) {
+        console.error("Error saving to database:", error);
+      } finally {
+        setIsSavingToDatabase(false);
       }
       
     } catch (error) {
