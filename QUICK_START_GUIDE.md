@@ -25,7 +25,7 @@ cp .env.example .env.local
 
 Required variables in `.env.local`:
 ```bash
-VITE_SUPABASE_URL=https://gadedbrnqzpfqtsdfzcg.supabase.co
+VITE_SUPABASE_URL=https://bzxohkrxcwodllketcpz.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 VITE_OPENAI_API_KEY=sk-proj-...
 VITE_GEMINI_API_KEY=AIzaSyC-...
@@ -36,7 +36,7 @@ VITE_ELEVENLABS_API_KEY=Sk_1b1501ca... (optional)
 
 Your edge functions need the OpenAI API key to work:
 
-1. Go to: https://app.supabase.com/project/gadedbrnqzpfqtsdfzcg/settings/functions
+1. Go to: https://app.supabase.com/project/bzxohkrxcwodllketcpz/settings/functions
 2. Click "Add new secret"
 3. Add:
    - **Name**: `OPENAI_API_KEY`
@@ -106,10 +106,10 @@ After deployment, test these critical features:
 ## 📊 Monitor Your Deployment
 
 ### Check Supabase Edge Function Logs
-https://app.supabase.com/project/gadedbrnqzpfqtsdfzcg/logs/edge-functions
+https://app.supabase.com/project/bzxohkrxcwodllketcpz/logs/edge-functions
 
 ### Check Database Activity
-https://app.supabase.com/project/gadedbrnqzpfqtsdfzcg/logs/postgres-logs
+https://app.supabase.com/project/bzxohkrxcwodllketcpz/logs/postgres-logs
 
 ### Monitor API Costs
 - OpenAI: https://platform.openai.com/usage
@@ -128,7 +128,7 @@ https://app.supabase.com/project/gadedbrnqzpfqtsdfzcg/logs/postgres-logs
 ```
 
 **View error logs:**
-https://app.supabase.com/project/gadedbrnqzpfqtsdfzcg/logs/edge-functions
+https://app.supabase.com/project/bzxohkrxcwodllketcpz/logs/edge-functions
 
 ### Build Failing?
 

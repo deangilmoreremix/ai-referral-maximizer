@@ -53,7 +53,7 @@ This document contains all the code for the Voice & SMS functionality, including
 ### Environment Variables
 ```env
 VITE_GEMINI_API_KEY=your_gemini_api_key
-VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_URL=https://bzxohkrxcwodllketcpz.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 VITE_UNIPILE_API_KEY=your_unipile_api_key (optional)
 VITE_DROPCOWBOY_API_KEY=your_dropcowboy_api_key (optional)
@@ -1208,7 +1208,7 @@ npm install @google/generative-ai @supabase/supabase-js axios lucide-react react
 Create a `.env` file:
 ```env
 VITE_GEMINI_API_KEY=your_gemini_api_key
-VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_URL=https://bzxohkrxcwodllketcpz.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 

@@ -8,7 +8,7 @@ Your edge functions need the OpenAI API key to work. Follow these steps:
 
 Open this URL in your browser:
 ```
-https://app.supabase.com/project/gadedbrnqzpfqtsdfzcg/settings/functions
+https://app.supabase.com/project/bzxohkrxcwodllketcpz/settings/functions
 ```
 
 ## Step 2: Add the Secret
@@ -37,7 +37,7 @@ After adding the secret:
 2. Test content generation in your app
 3. Check edge function logs if there are issues:
    ```
-   https://app.supabase.com/project/gadedbrnqzpfqtsdfzcg/logs/edge-functions
+   https://app.supabase.com/project/bzxohkrxcwodllketcpz/logs/edge-functions
    ```
 
 ## Troubleshooting
@@ -48,7 +48,7 @@ After adding the secret:
 - Wait 30 seconds after adding the secret
 
 ### Still not working?
-- Check the logs at: https://app.supabase.com/project/gadedbrnqzpfqtsdfzcg/logs/edge-functions
+- Check the logs at: https://app.supabase.com/project/bzxohkrxcwodllketcpz/logs/edge-functions
 - The error message will tell you what's wrong
 
 ---

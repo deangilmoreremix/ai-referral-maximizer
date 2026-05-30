@@ -129,7 +129,7 @@ All enhancement features have been implemented with **real integrations** where 
 ### Required for Full Functionality
 ```env
 # Supabase (Required - Already Configured)
-VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_URL=https://bzxohkrxcwodllketcpz.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key
 
 # OpenAI (Required for web search and image generation)

@@ -1,9 +1,17 @@
 /**
  * Image Generation Service
- * Integrates with existing OpenAI DALL-E image generation
+ * Integrates with OpenAI DALL-E and Muapi image generation
  */
 
 import { generateImage as dalleGenerateImage } from '../../lib/openai';
+import {
+  muapiService,
+  MuapiImageRequest,
+  MuapiVideoRequest,
+  VideoGenerationResult,
+} from './muapiService';
+
+export { MuapiImageRequest, MuapiVideoRequest, VideoGenerationResult };
 
 export interface ImageGenerationRequest {
   prompt: string;
@@ -27,7 +35,6 @@ class ImageGenerationService {
     const { prompt, model = 'dall-e-3', size = '1024x1024' } = request;
 
     try {
-      // Use OpenAI DALL-E for real image generation
       const result = await dalleGenerateImage(prompt, model, size);
 
       if (!result.url) {
@@ -40,9 +47,41 @@ class ImageGenerationService {
         model,
         timestamp: new Date().toISOString()
       };
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as Error;
       console.error('Image generation error:', error);
-      throw new Error(`Failed to generate image: ${error.message}`);
+      throw new Error(`Failed to generate image: ${err.message}`);
+    }
+  }
+
+  /**
+   * Generate an image using Muapi service
+   */
+  async generateImageWithMuapi(request: MuapiImageRequest): Promise<ImageGenerationResult> {
+    try {
+      return await muapiService.generateImageCompatible({
+        prompt: request.prompt,
+        model: request.model as 'dall-e-3' | 'dall-e-2',
+        size: request.size as '1024x1024' | '1792x1024' | '1024x1792' | undefined,
+        quality: request.quality,
+      });
+    } catch (error) {
+      const err = error as Error;
+      console.error('Muapi image generation error:', error);
+      throw new Error(`Failed to generate image with Muapi: ${err.message}`);
+    }
+  }
+
+  /**
+   * Generate a video using Muapi service
+   */
+  async generateVideoWithMuapi(request: MuapiVideoRequest): Promise<VideoGenerationResult> {
+    try {
+      return await muapiService.generateVideo(request);
+    } catch (error) {
+      const err = error as Error;
+      console.error('Muapi video generation error:', error);
+      throw new Error(`Failed to generate video with Muapi: ${err.message}`);
     }
   }
 
@@ -71,7 +110,6 @@ class ImageGenerationService {
    * Extract image prompt from user message
    */
   extractImagePrompt(text: string): string | null {
-    // Try to find the prompt after keywords
     const patterns = [
       /generate image of (.+)/i,
       /create image of (.+)/i,
@@ -89,7 +127,6 @@ class ImageGenerationService {
       }
     }
 
-    // If no pattern matches, return the full text if it's short enough
     if (text.length < 200 && this.shouldGenerateImage(text)) {
       return text;
     }

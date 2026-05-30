@@ -14,7 +14,7 @@ The `openai-gpt5` edge function needs the `OPENAI_API_KEY` environment variable 
 ### Method 1: Using Supabase Dashboard (Recommended)
 
 1. **Go to your Supabase Dashboard**
-   - URL: https://supabase.com/dashboard/project/gadedbrnqzpfqtsdfzcg
+   - URL: https://supabase.com/dashboard/project/bzxohkrxcwodllketcpz
 
 2. **Navigate to Edge Functions Settings**
    - Click on "Settings" (gear icon in left sidebar)
@@ -40,7 +40,7 @@ npx supabase secrets set OPENAI_API_KEY="sk-proj-EKER3R13gc66SwIWPiAmnEWysYUGuJ1
 After setting the environment variable, test the edge function:
 
 ```bash
-curl -X POST 'https://gadedbrnqzpfqtsdfzcg.supabase.co/functions/v1/openai-gpt5' \
+curl -X POST 'https://bzxohkrxcwodllketcpz.supabase.co/functions/v1/openai-gpt5' \
   -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhZGVkYnJucXpwZnF0c2RmemNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1NjYxMTUsImV4cCI6MjA1ODE0MjExNX0.bpsk8yRpwQQnYaY4qY3hsW5ExrQe_8JA3UZ51mlQ1e4' \
   -H 'Content-Type: application/json' \
   -d '{"input": "Say hello", "model": "gpt-5-mini"}'
