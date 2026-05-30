@@ -1,28 +1,37 @@
-export const MUAPI_API_KEY = 'd370ae6ecc87e99654ed2220fba0d1511224f41623867aedc2c2a0a06f15b208';
-export const MUAPI_BASE_URL = 'https://api.muapi.ai/v1';
-
-export interface MuapiImageRequest {
-  prompt: string;
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
-  size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
-  quality?: 'low' | 'medium' | 'high';
-  style?: string;
-  n?: number;
-}
-
-export interface MuapiVideoRequest {
-  prompt: string;
-  model?: 'runway-gen-2' | 'runway-gen-3' | 'stable-video' | 'luma-video';
-  duration?: number;
-  aspectRatio?: '16:9' | '9:16' | '1:1';
-  style?: 'cinematic' | 'anime' | 'photographic' | 'illustration' | '3d-render';
-}
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 export interface MuapiImageResult {
   imageUrl: string;
   prompt: string;
   model: string;
   timestamp: string;
+}
+
+export interface MuapiError {
+  error: string;
+  code?: string;
+  details?: string;
+}
+
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const MUAPI_EDGE_FUNCTION = '/functions/v1/muapi';
+
+export interface MuapiImageRequest {
+  prompt: string;
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
+  quality?: 'low' | 'medium' | 'high';
+  style?: string;
+  n?: number;
+  background?: 'transparent' | 'opaque';
+}
+
+export interface MuapiVideoRequest {
+  prompt: string;
+  model?: 'gpt-video' | 'runway-gen-2' | 'runway-gen-3' | 'stable-video' | 'luma-video';
+  duration?: number;
+  aspectRatio?: '16:9' | '9:16' | '1:1';
+  style?: 'cinematic' | 'anime' | 'photographic' | 'illustration' | '3d-render';
 }
 
 export interface VideoGenerationResult {
@@ -32,14 +41,9 @@ export interface VideoGenerationResult {
   duration: number;
   aspectRatio: string;
   timestamp: string;
-  status?: 'processing' | 'completed' | 'failed';
+  status?: 'processing' | 'completed' | 'failed' | 'not_supported';
   generationId?: string;
-}
-
-export interface MuapiError {
-  error: string;
-  code?: string;
-  details?: string;
+  message?: string;
 }
 
 export interface ImageGenerationRequest {
@@ -64,7 +68,7 @@ export interface CoreImageCreationParams {
   colorPalette?: string;
   mood?: string;
   details?: string;
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -80,7 +84,7 @@ export interface MarketingAssetParams {
   targetAudience?: string;
   product?: string;
   colorScheme?: string;
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -94,7 +98,7 @@ export interface BrandingParams {
   colors?: string;
   style?: string;
   targetAudience?: string;
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -109,7 +113,7 @@ export interface ProductEcommerceParams {
   platform?: 'amazon' | 'shopify' | 'ecommerce' | 'general';
   style?: string;
   lifestyle?: boolean;
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -123,7 +127,7 @@ export interface ContentMediaParams {
   style?: string;
   colorScheme?: string;
   targetAudience?: string;
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -172,7 +176,7 @@ export interface UIMediaParams {
   industry?: string;
   components?: string[];
   colorScheme?: string;
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -185,7 +189,7 @@ export interface EducationalGraphicParams {
   style?: string;
   colorScheme?: string;
   audience?: 'beginner' | 'intermediate' | 'advanced';
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -199,7 +203,7 @@ export interface StorytellingParams {
   style?: string;
   frameCount?: number;
   panelLayout?: 'single' | 'grid' | 'vertical-strip' | 'horizontal-strip';
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -212,7 +216,7 @@ export interface RealEstateParams {
   rooms?: string[];
   architecturalStyle?: string;
   lighting?: 'day' | 'evening' | 'night' | 'dawn';
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -224,7 +228,7 @@ export interface FashionLifestyleParams {
   gender?: 'male' | 'female' | 'unisex';
   style?: string;
   season?: 'spring' | 'summer' | 'fall' | 'winter';
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -237,7 +241,7 @@ export interface AIEditingWorkflowParams {
   styles?: string[];
   seeds?: number[];
   variationsPerSeed?: number;
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
 }
 
 export interface BatchGenerationResult {
@@ -249,7 +253,7 @@ export interface ABBatchParams {
   prompt: string;
   variantsCount?: number;
   styleVariations?: string[];
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
 }
 
 export interface CreativeAgencyParams {
@@ -261,7 +265,7 @@ export interface CreativeAgencyParams {
   budget?: 'low' | 'medium' | 'high';
   timeline?: string;
   stylePreferences?: string[];
-  model?: 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
 }
 
 export interface AgencyCreativePackage {
@@ -277,23 +281,38 @@ export interface AgencyCreativePackage {
 }
 
 export class MuapiService {
-  private apiKey: string;
-  private baseUrl: string;
+  private tenantId?: string;
 
-  constructor(apiKey: string = MUAPI_API_KEY, baseUrl: string = MUAPI_BASE_URL) {
-    this.apiKey = apiKey;
-    this.baseUrl = baseUrl;
+  constructor(tenantId?: string) {
+    this.tenantId = tenantId;
+  }
+
+  private getEdgeFunctionUrl(): string {
+    if (!SUPABASE_URL) {
+      throw new Error('Supabase URL is not configured. Set VITE_SUPABASE_URL environment variable.');
+    }
+    return `${SUPABASE_URL}${MUAPI_EDGE_FUNCTION}`;
   }
 
   private getHeaders(): HeadersInit {
     return {
-      'Authorization': `Bearer ${this.apiKey}`,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
+      'x-tenant-id': this.tenantId || '',
     };
   }
 
-  private handleApiError(error: unknown, context: string): never {
-    console.error(`Muapi ${context} error:`, error);
+  private validateConfig(): void {
+    if (!SUPABASE_URL) {
+      throw new Error('Supabase URL is not configured. Set VITE_SUPABASE_URL environment variable.');
+    }
+    if (!SUPABASE_ANON_KEY) {
+      throw new Error('Supabase anonymous key is not configured. Set VITE_SUPABASE_ANON_KEY environment variable.');
+    }
+  }
+
+  private handleEdgeFunctionError(error: unknown, context: string): never {
+    console.error(`Muapi edge function ${context} error:`, error);
     const message = error && typeof error === 'object' && 'message' in error
       ? (error as { message?: string }).message
       : error && typeof error === 'object' && 'error' in error
@@ -302,41 +321,61 @@ export class MuapiService {
     throw new Error(`Muapi ${context} failed: ${message}`);
   }
 
+  private async callEdgeFunction(endpoint: string, method: string, body?: Record<string, unknown>): Promise<Record<string, unknown>> {
+    this.validateConfig();
+    
+    const response = await fetch(this.getEdgeFunctionUrl(), {
+      method,
+      headers: this.getHeaders(),
+      body: body ? JSON.stringify({ ...body, endpoint }) : undefined,
+    });
+
+    if (!response.ok) {
+      const errorData: MuapiError = await response.json().catch(() => ({ error: 'Unknown API error' }));
+      const errorMessage = errorData.error || `HTTP ${response.status}`;
+      
+      if (response.status === 400) {
+        throw new Error(`Invalid request: ${errorMessage}`);
+      } else if (response.status === 401) {
+        throw new Error('Authentication failed. Please check your Supabase configuration.');
+      } else if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      } else if (response.status >= 500) {
+        throw new Error(`Server error: ${errorMessage}`);
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  }
+
   async generateImage(request: MuapiImageRequest): Promise<MuapiImageResult> {
-    const { prompt, model = 'stable-diffusion', size = '1024x1024', quality = 'medium' } = request;
+    const { prompt, model = 'gpt-image', size = '1024x1024', quality = 'medium', n = 1, background } = request;
 
     try {
-      const response = await fetch(`${this.baseUrl}/images/generate`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          prompt: prompt.trim(),
-          model,
-          size,
-          quality,
-          n: request.n || 1,
-        }),
+      const data = await this.callEdgeFunction('images', 'POST', {
+        prompt: prompt.trim(),
+        model,
+        size,
+        quality,
+        background,
+        n,
+        style: request.style,
       });
 
-      if (!response.ok) {
-        const errorData: MuapiError = await response.json().catch(() => ({ error: 'Unknown API error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data?.url) {
-        throw new Error('No image URL returned from Muapi');
+      if (!data?.imageUrl) {
+        throw new Error('No image URL returned from Muapi edge function');
       }
 
       return {
-        imageUrl: data.url,
+        imageUrl: data.imageUrl,
         prompt,
         model,
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
-      this.handleApiError(error, 'image generation');
+      this.handleEdgeFunctionError(error, 'image generation');
     }
   }
 
@@ -345,7 +384,7 @@ export class MuapiService {
       prompt: request.prompt,
       model: request.model === 'dall-e-3' || request.model === 'dall-e-2'
         ? request.model
-        : 'stable-diffusion',
+        : 'gpt-image',
       size: request.size as '512x512' | '1024x1024' | '1024x1792' | '1792x1024' | '2048x2048' | undefined,
       quality: request.quality as 'low' | 'medium' | 'high' | undefined,
     });
@@ -359,94 +398,61 @@ export class MuapiService {
   }
 
   async generateVideo(request: MuapiVideoRequest): Promise<VideoGenerationResult> {
-    const { prompt, model = 'runway-gen-3', duration = 5, aspectRatio = '16:9' } = request;
+    const { prompt, model = 'gpt-video', duration = 5, aspectRatio = '16:9' } = request;
 
     try {
-      const response = await fetch(`${this.baseUrl}/videos/generate`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          prompt: prompt.trim(),
-          model,
-          duration,
-          aspect_ratio: aspectRatio,
-          style: request.style || 'cinematic',
-        }),
+      const data = await this.callEdgeFunction('videos', 'POST', {
+        prompt: prompt.trim(),
+        model,
+        duration,
+        aspect_ratio: aspectRatio,
+        style: request.style || 'cinematic',
       });
 
-      if (!response.ok) {
-        const errorData: MuapiError = await response.json().catch(() => ({ error: 'Unknown API error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data?.video_url && !data?.url) {
-        throw new Error('No video URL returned from Muapi');
-      }
-
       return {
-        videoUrl: data.video_url || data.url,
+        videoUrl: data.videoUrl || '',
         prompt,
         model,
         duration,
         aspectRatio,
         timestamp: new Date().toISOString(),
-        status: data.status || 'processing',
-        generationId: data.id,
+        status: data.status || 'not_supported',
+        generationId: data.generationId,
+        message: data.message,
       };
     } catch (error) {
-      this.handleApiError(error, 'video generation');
+      this.handleEdgeFunctionError(error, 'video generation');
     }
   }
 
   async checkVideoStatus(generationId: string): Promise<VideoGenerationResult> {
     try {
-      const response = await fetch(`${this.baseUrl}/videos/${generationId}`, {
-        method: 'GET',
-        headers: this.getHeaders(),
-      });
-
-      if (!response.ok) {
-        const errorData: MuapiError = await response.json().catch(() => ({ error: 'Unknown API error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await this.callEdgeFunction(`videos/${generationId}`, 'GET');
 
       return {
-        videoUrl: data.video_url || data.url || '',
+        videoUrl: data.videoUrl || data.url || '',
         prompt: data.prompt || '',
         model: data.model || '',
         duration: data.duration || 5,
-        aspectRatio: data.aspect_ratio || '16:9',
-        timestamp: data.completed_at || new Date().toISOString(),
+        aspectRatio: data.aspectRatio || data.aspect_ratio || '16:9',
+        timestamp: data.timestamp || new Date().toISOString(),
         status: data.status || 'processing',
-        generationId: data.id,
+        generationId,
       };
     } catch (error) {
-      this.handleApiError(error, 'video status check');
+      this.handleEdgeFunctionError(error, 'video status check');
     }
   }
 
   async listAvailableModels(): Promise<{ images: string[]; videos: string[] }> {
     try {
-      const response = await fetch(`${this.baseUrl}/models`, {
-        method: 'GET',
-        headers: this.getHeaders(),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await this.callEdgeFunction('models', 'GET');
       return {
         images: data?.images || [],
         videos: data?.videos || [],
       };
     } catch (error) {
-      this.handleApiError(error, 'models list');
+      this.handleEdgeFunctionError(error, 'models list');
     }
   }
 
@@ -575,32 +581,47 @@ export class MuapiService {
   // 6. Editing & Transformation
   async editImage(request: EditingTransformationParams): Promise<MuapiImageResult> {
     try {
-      const response = await fetch(`${this.baseUrl}/images/edit`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          image_url: request.imageUrl,
-          type: request.type,
-          prompt: request.newBackground || request.targetStyle || '',
-          mask: request.mask,
-          adjustments: request.adjustments,
-        }),
-      });
+      let endpoint = 'edit-image';
+      let body: Record<string, unknown> = {
+        imageUrl: request.imageUrl,
+        type: request.type,
+      };
 
-      if (!response.ok) {
-        const errorData: MuapiError = await response.json().catch(() => ({ error: 'Unknown API error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
+      if (request.type === 'background-removal') {
+        endpoint = 'remove-background';
+        body = { image: request.imageUrl };
+      } else if (request.type === 'background-replacement' && request.newBackground) {
+        body.prompt = request.newBackground;
+        body.image = request.imageUrl;
+      } else if (request.type === 'style-transfer' && request.targetStyle) {
+        body.prompt = request.targetStyle;
+        body.image = request.imageUrl;
+      } else if (request.type === 'upscale') {
+        body = { image: request.imageUrl };
+      } else if (request.type === 'object-removal') {
+        endpoint = 'edit-image';
+        body = { prompt: `Remove ${request.objectsToRemove?.join(', ') || 'objects'} from this image`, image: request.imageUrl };
+      } else if (request.type === 'color-adjustment' && request.adjustments) {
+        endpoint = 'edit-image';
+        body = { prompt: JSON.stringify(request.adjustments), image: request.imageUrl };
+      } else {
+        body = { ...body, prompt: '' };
       }
 
-      const data = await response.json();
+      const data = await this.callEdgeFunction(endpoint, 'POST', body);
+
+      if (!data?.imageUrl) {
+        throw new Error('No image URL returned from Muapi edge function');
+      }
+
       return {
-        imageUrl: data.url,
+        imageUrl: data.imageUrl,
         prompt: request.imageUrl,
         model: 'image-edit',
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
-      this.handleApiError(error, 'image editing');
+      this.handleEdgeFunctionError(error, 'image editing');
     }
   }
 
@@ -631,33 +652,44 @@ export class MuapiService {
   // 7. Advanced Composition Editing
   async editComposition(request: AdvancedCompositionParams): Promise<MuapiImageResult> {
     try {
-      const response = await fetch(`${this.baseUrl}/images/composition`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          image_url: request.imageUrl,
-          type: request.type,
-          prompt: request.prompt,
-          mask: request.mask,
-          expansion_direction: request.expansionDirection,
-          expansion_scale: request.expansionScale,
-        }),
-      });
+      let endpoint = 'outpaint';
+      let body: Record<string, unknown> = {
+        image: request.imageUrl,
+        prompt: request.prompt,
+      };
 
-      if (!response.ok) {
-        const errorData: MuapiError = await response.json().catch(() => ({ error: 'Unknown API error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
+      if (request.type === 'inpainting') {
+        endpoint = 'inpaint';
+        body = {
+          prompt: request.prompt,
+          image: request.imageUrl,
+          mask: request.mask,
+        };
+      } else if (request.type === 'outpainting') {
+        body.direction = request.expansionDirection;
+      } else if (request.type === 'scene-expansion') {
+        endpoint = 'outpaint';
+        body = {
+          prompt: `Extend the scene: ${request.prompt}`,
+          image: request.imageUrl,
+          direction: 'all',
+        };
       }
 
-      const data = await response.json();
+      const data = await this.callEdgeFunction(endpoint, 'POST', body);
+
+      if (!data?.imageUrl) {
+        throw new Error('No image URL returned from Muapi edge function');
+      }
+
       return {
-        imageUrl: data.url,
+        imageUrl: data.imageUrl,
         prompt: request.prompt,
         model: 'composition-edit',
         timestamp: new Date().toISOString(),
       };
     } catch (error) {
-      this.handleApiError(error, 'composition editing');
+      this.handleEdgeFunctionError(error, 'composition editing');
     }
   }
 
@@ -676,32 +708,34 @@ export class MuapiService {
   // 8. Consistency-Based Generation
   async generateWithConsistency(request: ConsistencyParams): Promise<MuapiImageResult[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/images/consistent`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          type: request.type,
-          base_image: request.baseImage,
-          prompt: request.characterDescription || request.brandElements || '',
-          variations: request.variations || 1,
-          style_reference: request.styleReference,
-        }),
+      const data = await this.callEdgeFunction('consistent', 'POST', {
+        prompt: request.characterDescription || request.brandElements || '',
+        image: request.baseImage,
+        model: request.styleReference || 'gpt-image',
+        size: '1024x1024',
+        quality: 'medium',
+        n: request.variations || 1,
       });
 
-      if (!response.ok) {
-        const errorData: MuapiError = await response.json().catch(() => ({ error: 'Unknown API error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      return (data.images || []).map((img: { url: string }) => ({
-        imageUrl: img.url,
+      const images = (data.images || data?.imageUrl ? [data] : []).map((img: { imageUrl?: string }) => ({
+        imageUrl: img?.imageUrl || data?.imageUrl,
         prompt: request.characterDescription || request.brandElements || '',
         model: 'consistency',
         timestamp: new Date().toISOString(),
       }));
+
+      if (!data?.imageUrl && (!data?.images || data.images.length === 0)) {
+        return [{
+          imageUrl: '',
+          prompt: request.characterDescription || request.brandElements || '',
+          model: 'consistency',
+          timestamp: new Date().toISOString(),
+        }];
+      }
+
+      return images;
     } catch (error) {
-      this.handleApiError(error, 'consistency generation');
+      this.handleEdgeFunctionError(error, 'consistency generation');
     }
   }
 
@@ -809,63 +843,52 @@ export class MuapiService {
   // 14. AI Editing Automation Workflows
   async batchGenerate(params: AIEditingWorkflowParams): Promise<BatchGenerationResult> {
     try {
-      const response = await fetch(`${this.baseUrl}/images/batch-generate`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          prompt: params.basePrompt,
-          variations: params.variations || 5,
-          styles: params.styles,
-          seeds: params.seeds,
-          variations_per_seed: params.variationsPerSeed,
-        }),
+      const prompts = Array((params.variations || 5)).fill(0).map((_, i) => 
+        `${params.basePrompt}${params.styles && params.styles[i % params.styles.length] ? ` in ${params.styles[i % params.styles.length]} style` : ''}`
+      );
+
+      const data = await this.callEdgeFunction('batch', 'POST', {
+        prompts,
+        model: params.model || 'gpt-image',
+        size: '1024x1024',
+        quality: 'medium',
       });
 
-      if (!response.ok) {
-        const errorData: MuapiError = await response.json().catch(() => ({ error: 'Unknown API error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
+      const images = (data.results || data?.images || []).map((img: { prompt?: string; imageUrl?: string }) => ({
+        imageUrl: img?.imageUrl || '',
+        prompt: img?.prompt || params.basePrompt,
+        model: 'batch',
+        timestamp: new Date().toISOString(),
+      }));
 
-      const data = await response.json();
       return {
-        images: (data.images || []).map((img: { url: string }) => ({
-          imageUrl: img.url,
-          prompt: params.basePrompt,
-          model: 'batch',
-          timestamp: new Date().toISOString(),
-        })),
-        batchId: data.batch_id || '',
+        images,
+        batchId: `batch_${Date.now()}`,
       };
     } catch (error) {
-      this.handleApiError(error, 'batch generation');
+      this.handleEdgeFunctionError(error, 'batch generation');
     }
   }
 
   async generateABTestVariants(params: ABBatchParams): Promise<MuapiImageResult[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/images/ab-test`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({
-          prompt: params.prompt,
-          variants: params.variantsCount || 4,
-        }),
+      const prompts = Array(params.variantsCount || 4).fill(0).map((_, i) => 
+        `${params.prompt}${params.styleVariations && params.styleVariations[i] ? ` in ${params.styleVariations[i]} style` : ''}`
+      );
+
+      const data = await this.callEdgeFunction('batch', 'POST', {
+        prompts,
+        model: params.model || 'gpt-image',
       });
 
-      if (!response.ok) {
-        const errorData: MuapiError = await response.json().catch(() => ({ error: 'Unknown API error' }));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      return (data.variants || []).map((img: { url: string }) => ({
-        imageUrl: img.url,
-        prompt: params.prompt,
+      return (data.results || []).map((img: { prompt?: string; imageUrl?: string }) => ({
+        imageUrl: img?.imageUrl || '',
+        prompt: img?.prompt || params.prompt,
         model: 'ab-test',
         timestamp: new Date().toISOString(),
       }));
     } catch (error) {
-      this.handleApiError(error, 'A/B test variants');
+      this.handleEdgeFunctionError(error, 'A/B test variants');
     }
   }
 
@@ -888,13 +911,13 @@ export class MuapiService {
         packageId: `pkg_${Date.now()}`,
       };
     } catch (error) {
-      this.handleApiError(error, 'creative agency package');
+      this.handleEdgeFunctionError(error, 'creative agency package');
     }
   }
 
   async launchBrandCampaign(clientName: string, industry: string, styles: string[]): Promise<MuapiImageResult[]> {
     const prompt = `complete brand campaign for ${clientName}, ${industry} industry, ${styles.join(', ')}`;
-    return this.generateImageMultiple({ prompt, n: 6, model: 'dall-e-3' });
+    return this.generateImageMultiple({ prompt, n: 6, model: 'gpt-image' });
   }
 
   async generateMarketingKit(platforms: string[], branding: string): Promise<MuapiImageResult[]> {
@@ -904,26 +927,18 @@ export class MuapiService {
 
   // Helper method
   private async generateImageMultiple(params: { prompt: string; n: number; model?: string; size?: string; quality?: string }): Promise<MuapiImageResult[]> {
-    const response = await fetch(`${this.baseUrl}/images/generate`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-      body: JSON.stringify({
-        prompt: params.prompt,
-        model: params.model || 'stable-diffusion',
-        n: params.n,
-      }),
+    const data = await this.callEdgeFunction('images', 'POST', {
+      prompt: params.prompt,
+      model: params.model || 'gpt-image',
+      n: params.n,
+      size: params.size || '1024x1024',
+      quality: params.quality || 'medium',
     });
 
-    if (!response.ok) {
-      const errorData: MuapiError = await response.json().catch(() => ({ error: 'Unknown API error' }));
-      throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-    return (data.images || []).map((img: { url: string }) => ({
-      imageUrl: img.url,
+    return (data.images || []).map((img: { imageUrl?: string }) => ({
+      imageUrl: img?.imageUrl || '',
       prompt: params.prompt,
-      model: params.model || 'stable-diffusion',
+      model: params.model || 'gpt-image',
       timestamp: new Date().toISOString(),
     }));
   }

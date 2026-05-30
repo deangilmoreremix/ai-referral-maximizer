@@ -179,6 +179,11 @@ function extractImageUrl(response: any): string | null {
   return imageUrl || null;
 }
 
+interface RequestBody {
+  endpoint?: string;
+  [key: string]: unknown;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -191,9 +196,9 @@ Deno.serve(async (req: Request) => {
     const authenticatedUserId = getAuthenticatedUserId(req);
     const tenantId = getTenantId(req);
     const url = new URL(req.url);
-    const path = url.pathname.split('/').pop();
 
-    if (req.method === 'GET' && path === 'models') {
+    // Handle GET requests for models (no body-based routing)
+    if (req.method === 'GET' && url.pathname.endsWith('/models')) {
       const response = await fetch('https://api.openai.com/v1/models', {
         method: 'GET',
         headers: {
@@ -213,9 +218,12 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (req.method === 'POST' && (path === 'images' || path === 'generate')) {
-      const body: ImageRequest = await req.json();
-      const { prompt, model = 'gpt-image', size = '1024x1024', quality = 'medium', background = 'opaque', style, n = 1 } = body;
+    // Parse body for POST requests - endpoint-based routing
+    const parsedBody: RequestBody = req.method === 'POST' ? await req.json() : {};
+    const endpoint = parsedBody.endpoint || url.pathname.split('/').pop();
+
+    if (req.method === 'POST' && (endpoint === 'images' || endpoint === 'generate')) {
+      const { prompt, model = 'gpt-image', size = '1024x1024', quality = 'medium', background = 'opaque', style, n = 1 } = parsedBody;
 
       if (!prompt || prompt.trim().length === 0) {
         return new Response(
@@ -273,9 +281,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (req.method === 'POST' && path === 'inpaint') {
-      const body: InpaintRequest = await req.json();
-      const { prompt, image, mask, model = 'gpt-image', size = '1024x1024', quality = 'medium' } = body;
+    if (req.method === 'POST' && endpoint === 'inpaint') {
+      const { prompt, image, mask, model = 'gpt-image', size = '1024x1024', quality = 'medium' } = parsedBody;
 
       if (!prompt || !image || !mask) {
         return new Response(
@@ -333,9 +340,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (req.method === 'POST' && path === 'outpaint') {
-      const body: OutpaintRequest = await req.json();
-      const { prompt, image, direction = 'all', model = 'gpt-image', size = '1024x1024', quality = 'medium' } = body;
+    if (req.method === 'POST' && endpoint === 'outpaint') {
+      const { prompt, image, direction = 'all', model = 'gpt-image', size = '1024x1024', quality = 'medium' } = parsedBody;
 
       if (!prompt || !image) {
         return new Response(
@@ -396,9 +402,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (req.method === 'POST' && path === 'remove-background') {
-      const body: ImageRequest = await req.json();
-      const { image, model = 'gpt-image' } = body;
+    if (req.method === 'POST' && endpoint === 'remove-background') {
+      const { image, model = 'gpt-image' } = parsedBody;
 
       if (!image) {
         return new Response(
@@ -455,9 +460,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (req.method === 'POST' && path === 'edit-image') {
-      const body: ImageRequest = await req.json();
-      const { prompt, image, model = 'gpt-image', size = '1024x1024', quality = 'medium' } = body;
+    if (req.method === 'POST' && endpoint === 'edit-image') {
+      const { prompt, image, model = 'gpt-image', size = '1024x1024', quality = 'medium' } = parsedBody;
 
       if (!prompt || !image) {
         return new Response(
@@ -515,9 +519,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (req.method === 'POST' && path === 'consistent') {
-      const body: ConsistencyRequest = await req.json();
-      const { prompt, image, model = 'gpt-image', size = '1024x1024', quality = 'medium', n = 1 } = body;
+    if (req.method === 'POST' && endpoint === 'consistent') {
+      const { prompt, image, model = 'gpt-image', size = '1024x1024', quality = 'medium', n = 1 } = parsedBody;
 
       if (!prompt || !image) {
         return new Response(
@@ -575,9 +578,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (req.method === 'POST' && path === 'batch') {
-      const body: BatchRequest = await req.json();
-      const { prompts, model = 'gpt-image', size = '1024x1024', quality = 'medium', n = 1 } = body;
+    if (req.method === 'POST' && endpoint === 'batch') {
+      const { prompts, model = 'gpt-image', size = '1024x1024', quality = 'medium', n = 1 } = parsedBody;
 
       if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
         return new Response(
@@ -643,9 +645,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (req.method === 'POST' && path === 'videos') {
-      const body = await req.json();
-      const { prompt, model = 'gpt-video', duration = 5, aspectRatio = '16:9', style = 'cinematic' } = body;
+    if (req.method === 'POST' && endpoint === 'videos') {
+      const { prompt, model = 'gpt-video', duration = 5, aspectRatio = '16:9', style = 'cinematic' } = parsedBody;
 
       if (!prompt || prompt.trim().length === 0) {
         return new Response(
@@ -689,7 +690,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ error: 'Invalid endpoint. Use /images, /inpaint, /outpaint, /remove-background, /edit-image, /consistent, /batch, /videos, or /models' }),
+      JSON.stringify({ error: 'Invalid endpoint. Provide endpoint in request body: images, generate, inpaint, outpaint, remove-background, edit-image, consistent, batch, videos, or use /models for GET requests' }),
       {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
