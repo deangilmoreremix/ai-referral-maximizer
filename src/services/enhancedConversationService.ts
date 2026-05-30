@@ -128,7 +128,8 @@ class EnhancedConversationService {
             videoResult.prompt,
             videoResult.videoUrl,
             videoResult.model,
-            videoResult.duration
+            videoResult.duration,
+            videoResult.aspectRatio
           );
         }
       } catch (error) {

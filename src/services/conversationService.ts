@@ -16,6 +16,7 @@ export interface ConversationMessage {
   has_file_attachment?: boolean;
   has_image_generation?: boolean;
   has_code_execution?: boolean;
+  has_video_generation?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +28,18 @@ export interface MessageMetadata {
   has_file_attachment?: boolean;
   has_image_generation?: boolean;
   has_code_execution?: boolean;
+  has_video_generation?: boolean;
+}
+
+export interface GeneratedVideo {
+  id: string;
+  message_id: string;
+  prompt: string;
+  video_url: string;
+  model: string;
+  duration: number;
+  aspect_ratio: string;
+  created_at: string;
 }
 
 export interface ConversationAttachment {
@@ -61,7 +74,8 @@ class ConversationService {
         has_web_search: metadata?.has_web_search || false,
         has_file_attachment: metadata?.has_file_attachment || false,
         has_image_generation: metadata?.has_image_generation || false,
-        has_code_execution: metadata?.has_code_execution || false
+        has_code_execution: metadata?.has_code_execution || false,
+        has_video_generation: metadata?.has_video_generation || false
       })
       .select()
       .single();
@@ -156,12 +170,10 @@ class ConversationService {
     messageId?: string
   ): Promise<ConversationAttachment> {
     try {
-      // Generate unique file path
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${contextId}/${fileName}`;
 
-      // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('conversation-attachments')
         .upload(filePath, file, {
@@ -173,7 +185,6 @@ class ConversationService {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
-      // Save attachment record
       const { data, error: dbError } = await supabase
         .from('conversation_attachments')
         .insert({
@@ -188,7 +199,6 @@ class ConversationService {
         .single();
 
       if (dbError) {
-        // Try to clean up uploaded file
         await supabase.storage.from('conversation-attachments').remove([filePath]);
         throw new Error(`Database error: ${dbError.message}`);
       }
@@ -243,7 +253,6 @@ class ConversationService {
    * Delete an attachment
    */
   async deleteAttachment(attachmentId: string): Promise<void> {
-    // Get attachment to find storage path
     const { data: attachment, error: fetchError } = await supabase
       .from('conversation_attachments')
       .select('storage_path')
@@ -254,7 +263,6 @@ class ConversationService {
       throw new Error(`Failed to fetch attachment: ${fetchError.message}`);
     }
 
-    // Delete from storage
     const { error: storageError } = await supabase.storage
       .from('conversation-attachments')
       .remove([attachment.storage_path]);
@@ -263,7 +271,6 @@ class ConversationService {
       console.error('Error deleting from storage:', storageError);
     }
 
-    // Delete from database
     const { error: dbError } = await supabase
       .from('conversation_attachments')
       .delete()
@@ -364,7 +371,6 @@ class ConversationService {
    * Delete a conversation context and all related data
    */
   async deleteContext(contextId: string): Promise<void> {
-    // Database foreign keys with CASCADE will handle related records
     const { error } = await supabase
       .from('conversation_messages')
       .delete()
@@ -374,7 +380,6 @@ class ConversationService {
       throw new Error(`Failed to delete context: ${error.message}`);
     }
 
-    // Clean up attachments from storage
     try {
       const { data: files } = await supabase.storage
         .from('conversation-attachments')
@@ -389,6 +394,52 @@ class ConversationService {
     } catch (error) {
       console.error('Error cleaning up storage:', error);
     }
+  }
+
+  /**
+   * Save generated video
+   */
+  async saveGeneratedVideo(
+    messageId: string,
+    prompt: string,
+    videoUrl: string,
+    model: string,
+    duration: number,
+    aspectRatio?: string
+  ): Promise<void> {
+    const { error } = await supabase
+      .from('generated_videos')
+      .insert({
+        message_id: messageId,
+        prompt,
+        video_url: videoUrl,
+        model,
+        duration,
+        aspect_ratio: aspectRatio || '16:9'
+      });
+
+    if (error) {
+      console.error('Error saving generated video:', error);
+      throw new Error(`Failed to save generated video: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get generated videos for a message
+   */
+  async getGeneratedVideos(messageId: string): Promise<GeneratedVideo[]> {
+    const { data, error } = await supabase
+      .from('generated_videos')
+      .select('*')
+      .eq('message_id', messageId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching generated videos:', error);
+      return [];
+    }
+
+    return data || [];
   }
 }
 
