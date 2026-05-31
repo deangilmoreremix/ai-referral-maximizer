@@ -96,6 +96,29 @@ function getTenantId(req: Request): string | null {
   return tenantHeader || null;
 }
 
+const MUAPI_API_KEY = Deno.env.get('MUAPI_API_KEY') || '';
+
+async function callMuapiAPI(
+  endpoint: string,
+  body: Record<string, unknown>
+): Promise<any> {
+  const response = await fetch(`https://api.muapi.ai/v1${endpoint}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${MUAPI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown API error' }));
+    throw new Error(errorData.error?.message || `HTTP ${response.status}`);
+  }
+
+  return await response.json();
+}
+
 async function callOpenAIResponses(
   input: string | Array<Record<string, unknown>>,
   tools?: Array<Record<string, unknown>>,
