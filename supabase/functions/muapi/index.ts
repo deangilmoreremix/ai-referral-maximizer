@@ -147,7 +147,7 @@ async function callOpenAIResponses(
   return await response.json();
 }
 
-async function generateImageWithOpenAI(
+async function generateImageWithMuapi(
   prompt: string,
   model: string = 'gpt-image',
   size: string = '1024x1024',
@@ -158,6 +158,21 @@ async function generateImageWithOpenAI(
   mask?: string,
   n: number = 1
 ): Promise<any> {
+  // Use Muapi API if key is configured, otherwise fall back to OpenAI
+  if (MUAPI_API_KEY) {
+    const result = await callMuapiAPI('/images/generations', {
+      prompt,
+      model,
+      size,
+      quality,
+      ...(background === 'transparent' ? { background: 'transparent' } : {}),
+      ...(style ? { style } : {}),
+      n,
+    });
+    return result;
+  }
+
+  // Fallback to OpenAI Responses API
   const tools = [{
     type: 'image_generation',
     model,
@@ -165,12 +180,10 @@ async function generateImageWithOpenAI(
     size,
     ...(background === 'transparent' ? { background: 'transparent' } : {}),
     ...(style ? { style } : {}),
-    ...(image ? { image, ...(mask ? { mask } : {}) } : {}),
     n,
   }];
 
-  const result = await callOpenAIResponses(prompt, tools);
-  return result;
+  return await callOpenAIResponses(prompt, tools);
 }
 
 function extractImageUrl(response: any): string | null {
@@ -260,7 +273,7 @@ Deno.serve(async (req: Request) => {
 
       console.log(`Muapi: Generating image with model ${model}`);
 
-      const openaiResponse = await generateImageWithOpenAI(
+      const openaiResponse = await generateImageWithMuapi(
         prompt.trim(),
         model,
         size,
@@ -275,7 +288,7 @@ Deno.serve(async (req: Request) => {
       const imageUrl = extractImageUrl(openaiResponse);
 
       if (!imageUrl) {
-        throw new Error('No image URL returned from OpenAI');
+        throw new Error('No image URL returned from Muapi/OpenAI');
       }
 
       const result = {
@@ -319,7 +332,7 @@ Deno.serve(async (req: Request) => {
 
       console.log(`Muapi: Inpainting with model ${model}`);
 
-      const openaiResponse = await generateImageWithOpenAI(
+      const openaiResponse = await generateImageWithMuapi(
         prompt.trim(),
         model,
         size,
@@ -334,7 +347,7 @@ Deno.serve(async (req: Request) => {
       const imageUrl = extractImageUrl(openaiResponse);
 
       if (!imageUrl) {
-        throw new Error('No image URL returned from OpenAI');
+        throw new Error('No image URL returned from Muapi/OpenAI');
       }
 
       const result = {
@@ -380,7 +393,7 @@ Deno.serve(async (req: Request) => {
 
       const outpaintPrompt = `Extend the image${direction !== 'all' ? ` to the ${direction}` : ''} with: ${prompt}`;
 
-      const openaiResponse = await generateImageWithOpenAI(
+      const openaiResponse = await generateImageWithMuapi(
         outpaintPrompt.trim(),
         model,
         size,
@@ -395,7 +408,7 @@ Deno.serve(async (req: Request) => {
       const imageUrl = extractImageUrl(openaiResponse);
 
       if (!imageUrl) {
-        throw new Error('No image URL returned from OpenAI');
+        throw new Error('No image URL returned from Muapi/OpenAI');
       }
 
       const result = {
@@ -440,7 +453,7 @@ Deno.serve(async (req: Request) => {
 
       console.log(`Muapi: Removing background with model ${model}`);
 
-      const openaiResponse = await generateImageWithOpenAI(
+      const openaiResponse = await generateImageWithMuapi(
         'Remove the background from this image',
         model,
         '1024x1024',
@@ -455,7 +468,7 @@ Deno.serve(async (req: Request) => {
       const imageUrl = extractImageUrl(openaiResponse);
 
       if (!imageUrl) {
-        throw new Error('No image URL returned from OpenAI');
+        throw new Error('No image URL returned from Muapi/OpenAI');
       }
 
       const result = {
@@ -498,7 +511,7 @@ Deno.serve(async (req: Request) => {
 
       console.log(`Muapi: Editing image with model ${model}`);
 
-      const openaiResponse = await generateImageWithOpenAI(
+      const openaiResponse = await generateImageWithMuapi(
         prompt.trim(),
         model,
         size,
@@ -513,7 +526,7 @@ Deno.serve(async (req: Request) => {
       const imageUrl = extractImageUrl(openaiResponse);
 
       if (!imageUrl) {
-        throw new Error('No image URL returned from OpenAI');
+        throw new Error('No image URL returned from Muapi/OpenAI');
       }
 
       const result = {
@@ -557,7 +570,7 @@ Deno.serve(async (req: Request) => {
 
       console.log(`Muapi: Consistent generation with model ${model}`);
 
-      const openaiResponse = await generateImageWithOpenAI(
+      const openaiResponse = await generateImageWithMuapi(
         prompt.trim(),
         model,
         size,
@@ -572,7 +585,7 @@ Deno.serve(async (req: Request) => {
       const imageUrl = extractImageUrl(openaiResponse);
 
       if (!imageUrl) {
-        throw new Error('No image URL returned from OpenAI');
+        throw new Error('No image URL returned from Muapi/OpenAI');
       }
 
       const result = {
@@ -621,7 +634,7 @@ Deno.serve(async (req: Request) => {
         if (!prompt || prompt.trim().length === 0) continue;
 
         try {
-          const openaiResponse = await generateImageWithOpenAI(
+          const openaiResponse = await generateImageWithMuapi(
             prompt.trim(),
             model,
             size,

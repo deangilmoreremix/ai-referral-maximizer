@@ -1,5 +1,8 @@
 import { OpenAI } from "openai";
 
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || "";
+const openai = new OpenAI({ apiKey: OPENAI_API_KEY, dangerouslyAllowBrowser: true });
+
 // Available models - will be updated when GPT-5 is released
 export const AVAILABLE_MODELS = {
   // GPT-5 models (now available)
