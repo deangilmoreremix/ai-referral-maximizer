@@ -147,6 +147,7 @@ export interface EditingTransformationParams {
     saturation?: number;
     hue?: number;
   };
+  prompt?: string;
 }
 
 export interface AdvancedCompositionParams {
@@ -600,7 +601,7 @@ export class MuapiService {
         body = { image: request.imageUrl };
       } else if (request.type === 'object-removal') {
         endpoint = 'edit-image';
-        body = { prompt: `Remove ${request.objectsToRemove?.join(', ') || 'objects'} from this image`, image: request.imageUrl };
+        body = { prompt: request.prompt || `Remove ${request.objectsToRemove?.join(', ') || 'objects'} from this image`, image: request.imageUrl };
       } else if (request.type === 'color-adjustment' && request.adjustments) {
         endpoint = 'edit-image';
         body = { prompt: JSON.stringify(request.adjustments), image: request.imageUrl };
