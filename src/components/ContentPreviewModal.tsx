@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Download, Target, Sparkles, Building, FileType, Linkedin, PaintBucket, Check, ArrowRight, CheckCircle, Database } from 'lucide-react';
+import { X, Download, Target, Sparkles, Building, FileType, Linkedin, PaintBucket, Check, ArrowRight, CheckCircle, Database, ImageIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import DaySelector from './DaySelector';
+import ImageGenerator from './ImageGenerator';
 
 interface ContentPreviewModalProps {
   isOpen: boolean;
