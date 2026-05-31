@@ -18,12 +18,11 @@ const MUAPI_EDGE_FUNCTION = '/functions/v1/muapi';
 
 export interface MuapiImageRequest {
   prompt: string;
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
-  style?: string;
-  n?: number;
   background?: 'transparent' | 'opaque';
+  n?: number;
 }
 
 export interface MuapiVideoRequest {
