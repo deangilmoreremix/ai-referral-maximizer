@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Brain, Award, ArrowRight, ChevronRight, Target, Briefcase, BarChart2, Users, Zap,
-  CheckCircle, Calendar, MessageSquare, FileText, PenTool, User, Mail, Phone, Globe2, Building2
+  CheckCircle, Calendar, MessageSquare, FileText, PenTool, User, Mail, Phone, Globe2, Building2, Image
 } from 'lucide-react';
 import { generateContent } from '../services/openAIService';
+import { muapiService } from '../services/muapiService';
 import { useConsultant } from '../contexts/ConsultantContext';
 import ConsultantPreview from './consultant/ConsultantPreview';
 
@@ -22,8 +23,9 @@ const ConsultantAccelerator: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<'gemini-2.5-pro' | 'gemini-2.0-flash' | 'gemini-2.0-flash-light'>('gemini-2.0-flash');
+  const [stepImages, setStepImages] = useState<Record<string, string[]>>({});
+  const [generatingImages, setGeneratingImages] = useState<Record<string, boolean>>({});
 
-  // Define steps for the consultant accelerator
   const steps: AcceleratorStep[] = [
     {
       id: 1,
@@ -105,7 +107,6 @@ const ConsultantAccelerator: React.FC = () => {
     }
   ];
   
-  // Benefits of using the accelerator
   const benefits = [
     { icon: <Calendar />, title: "Start in 30 Days", description: "Launch your consulting business in just one month" },
     { icon: <DollarSign />, title: "Premium Pricing", description: "Package and price your expertise for maximum value" },
@@ -113,7 +114,6 @@ const ConsultantAccelerator: React.FC = () => {
     { icon: <LineChart />, title: "Predictable Growth", description: "Reliable systems for sustainable business growth" }
   ];
 
-  // Try to load saved consultant info from localStorage on mount
   useEffect(() => {
     try {
       const savedInfo = localStorage.getItem('consultantInfo');
@@ -125,14 +125,12 @@ const ConsultantAccelerator: React.FC = () => {
     }
   }, [updateConsultantInfo]);
 
-  // Save consultant info to localStorage when it changes
   useEffect(() => {
     if (consultantInfo.name || consultantInfo.email || consultantInfo.expertise) {
       localStorage.setItem('consultantInfo', JSON.stringify(consultantInfo));
     }
   }, [consultantInfo]);
 
-  // Generate content for the current step
   const generateStepContent = useCallback(async () => {
     if (isGenerating) return;
     
@@ -143,7 +141,6 @@ const ConsultantAccelerator: React.FC = () => {
       const currentStep = steps[activeStep-1];
       let prompt = currentStep.contentPrompt;
       
-      // Add consultant information to the prompt if available
       if (consultantInfo.name) {
         prompt += `\n\nPlease tailor this guidance for ${consultantInfo.name}`;
         
@@ -166,7 +163,6 @@ const ConsultantAccelerator: React.FC = () => {
         model: selectedModel
       });
       
-      // Save the generated content to consultant context
       saveContent(`step-${activeStep}`, content);
       
     } catch (err: any) {
@@ -176,6 +172,32 @@ const ConsultantAccelerator: React.FC = () => {
       setIsGenerating(false);
     }
   }, [activeStep, isGenerating, consultantInfo, selectedModel, steps, saveContent]);
+
+  const generateStepImage = useCallback(async (stepId: number) => {
+    const stepKey = `step-${stepId}`;
+    setGeneratingImages(prev => ({ ...prev, [stepKey]: true }));
+    
+    try {
+      const currentStep = steps[stepId - 1];
+      const prompt = `${currentStep.title} visual for consulting business, professional, clean design, infographic style, business concept illustration`;
+      
+      const result = await muapiService.generateImage({
+        prompt,
+        model: 'gpt-image',
+        size: '1024x1024',
+        quality: 'medium',
+      });
+      
+      setStepImages(prev => ({
+        ...prev,
+        [stepKey]: [...(prev[stepKey] || []), result.imageUrl]
+      }));
+    } catch (err: any) {
+      console.error("Error generating image:", err);
+    } finally {
+      setGeneratingImages(prev => ({ ...prev, [stepKey]: false }));
+    }
+  }, [steps]);
 
   return (
     <div className="mt-12 mb-8 rounded-xl overflow-hidden border border-gray-200 shadow-md bg-white">
@@ -194,7 +216,6 @@ const ConsultantAccelerator: React.FC = () => {
       </div>
       
       <div className="p-6">
-        {/* Consultant Information Section */}
         <div className="mb-6 bg-purple-50 rounded-xl p-4 border border-purple-100">
           <div className="flex justify-between items-center">
             <h3 className="font-medium text-purple-900">Consultant Information</h3>
@@ -317,21 +338,17 @@ const ConsultantAccelerator: React.FC = () => {
           </div>
         </div>
         
-        {/* Progress Timeline */}
         <div className="mb-8">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Build Your Consulting Business in 6 Steps</h3>
           
           <div className="relative">
-            {/* Timeline track */}
             <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200"></div>
             
-            {/* Progress bar */}
             <div 
               className="absolute top-5 left-0 h-1 bg-indigo-600 transition-all duration-500" 
               style={{ width: `${(activeStep / steps.length) * 100}%` }}
             ></div>
             
-            {/* Step indicators */}
             <div className="relative flex justify-between">
               {steps.map((step) => (
                 <div 
@@ -367,9 +384,7 @@ const ConsultantAccelerator: React.FC = () => {
           </div>
         </div>
         
-        {/* Step Details */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
-          {/* Step Content */}
           <div className="md:col-span-2">
             <div className={`p-5 rounded-xl border ${getColorClass(steps[activeStep-1].color, 'border')} ${getColorClass(steps[activeStep-1].color, 'bg')}`}>
               <div className="flex items-center mb-4">
@@ -401,7 +416,6 @@ const ConsultantAccelerator: React.FC = () => {
               </div>
               
               <div className="mt-6">
-                {/* AI Model Selection */}
                 <div className="w-full max-w-sm">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     AI Model
@@ -417,7 +431,6 @@ const ConsultantAccelerator: React.FC = () => {
                   </select>
                 </div>
                 
-                {/* Generate button */}
                 <button
                   onClick={generateStepContent}
                   disabled={isGenerating}
@@ -439,13 +452,27 @@ const ConsultantAccelerator: React.FC = () => {
                   )}
                 </button>
               </div>
-              
-              {/* Generated Content Display */}
+                
               {(generatedContent[`step-${activeStep}`] || isGenerating) && (
                 <div className="mt-6 bg-white rounded-lg border border-gray-200 shadow-sm p-6">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="font-medium text-gray-900">Generated Content</h4>
                     <div className="flex space-x-2">
+                      <button
+                        onClick={() => generateStepImage(activeStep)}
+                        disabled={generatingImages[`step-${activeStep}`]}
+                        className="px-2 py-1 text-xs rounded border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center"
+                      >
+                        {generatingImages[`step-${activeStep}`] ? (
+                          <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <Image className="h-3 w-3 mr-1" />
+                        )}
+                        Generate Visual
+                      </button>
                       {generatedContent[`step-${activeStep}`] && !isGenerating && (
                         <>
                           <button 
@@ -478,7 +505,7 @@ const ConsultantAccelerator: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  
+                    
                   {isGenerating ? (
                     <div className="flex flex-col items-center justify-center py-8">
                       <svg className="animate-spin h-8 w-8 text-indigo-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -506,24 +533,42 @@ const ConsultantAccelerator: React.FC = () => {
                       </div>
                     </div>
                   ) : generatedContent[`step-${activeStep}`] ? (
-                    <div className="prose max-w-none">
-                      {generatedContent[`step-${activeStep}`].split('\n').map((line, i) => {
-                        // Handle markdown-like formatting
-                        if (line.startsWith('# ')) {
-                          return <h1 key={i} className="text-xl font-bold">{line.substring(2)}</h1>;
-                        } else if (line.startsWith('## ')) {
-                          return <h2 key={i} className="text-lg font-semibold mt-4">{line.substring(3)}</h2>;
-                        } else if (line.startsWith('### ')) {
-                          return <h3 key={i} className="text-md font-medium mt-3">{line.substring(4)}</h3>;
-                        } else if (line.startsWith('- ')) {
-                          return <li key={i} className="ml-4">{line.substring(2)}</li>;
-                        } else if (line.trim() === '') {
-                          return <br key={i} />;
-                        } else {
-                          return <p key={i}>{line}</p>;
-                        }
-                      })}
-                    </div>
+                    <>
+                      <div className="prose max-w-none">
+                        {generatedContent[`step-${activeStep}`].split('\n').map((line, i) => {
+                          if (line.startsWith('# ')) {
+                            return <h1 key={i} className="text-xl font-bold">{line.substring(2)}</h1>;
+                          } else if (line.startsWith('## ')) {
+                            return <h2 key={i} className="text-lg font-semibold mt-4">{line.substring(3)}</h2>;
+                          } else if (line.startsWith('### ')) {
+                            return <h3 key={i} className="text-md font-medium mt-3">{line.substring(4)}</h3>;
+                          } else if (line.startsWith('- ')) {
+                            return <li key={i} className="ml-4">{line.substring(2)}</li>;
+                          } else if (line.trim() === '') {
+                            return <br key={i} />;
+                          } else {
+                            return <p key={i}>{line}</p>;
+                          }
+                        })}
+                      </div>
+                      
+                      {stepImages[`step-${activeStep}`]?.length > 0 && (
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                          <h5 className="font-medium text-gray-900 mb-3">Generated Visuals</h5>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {stepImages[`step-${activeStep}`].map((imageUrl, idx) => (
+                              <div key={idx} className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                <img 
+                                  src={imageUrl} 
+                                  alt={`${steps[activeStep-1].title} visual ${idx + 1}`}
+                                  className="w-full h-auto object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="text-center text-gray-500 py-8">
                       <FileText className="h-10 w-10 mx-auto mb-2 text-gray-300" />
@@ -538,8 +583,8 @@ const ConsultantAccelerator: React.FC = () => {
                   onClick={() => setActiveStep(Math.max(1, activeStep - 1))}
                   className={`flex items-center text-sm px-3 py-1.5 rounded border ${
                     activeStep === 1 
-                    ? 'text-gray-400 border-gray-200 cursor-not-allowed' 
-                    : `${getColorClass(steps[activeStep-1].color, 'text')} ${getColorClass(steps[activeStep-1].color, 'border')} hover:bg-white`
+                      ? 'text-gray-400 border-gray-200 cursor-not-allowed' 
+                      : `${getColorClass(steps[activeStep-1].color, 'text')} ${getColorClass(steps[activeStep-1].color, 'border')} hover:bg-white`
                   }`}
                   disabled={activeStep === 1}
                 >
@@ -549,8 +594,8 @@ const ConsultantAccelerator: React.FC = () => {
                   onClick={() => setActiveStep(Math.min(steps.length, activeStep + 1))}
                   className={`flex items-center text-sm px-3 py-1.5 rounded border ${
                     activeStep === steps.length 
-                    ? 'text-gray-400 border-gray-200 cursor-not-allowed' 
-                    : `${getColorClass(steps[activeStep-1].color, 'text')} ${getColorClass(steps[activeStep-1].color, 'border')} hover:bg-white`
+                      ? 'text-gray-400 border-gray-200 cursor-not-allowed' 
+                      : `${getColorClass(steps[activeStep-1].color, 'text')} ${getColorClass(steps[activeStep-1].color, 'border')} hover:bg-white`
                   }`}
                   disabled={activeStep === steps.length}
                 >
@@ -561,9 +606,7 @@ const ConsultantAccelerator: React.FC = () => {
             </div>
           </div>
           
-          {/* Sidebar - Program Benefits */}
           <div className="space-y-6">
-            {/* Profile Preview */}
             <ConsultantPreview 
               consultantName={consultantInfo.name || "Your Name"} 
               consultantExpertise={consultantInfo.expertise || "Consultant"}
@@ -609,7 +652,6 @@ const ConsultantAccelerator: React.FC = () => {
   );
 };
 
-// Get color class for a step
 const getColorClass = (color: string, element: 'bg' | 'text' | 'border'): string => {
   const colorMap: Record<string, Record<string, string>> = {
     blue: { bg: 'bg-blue-100', text: 'text-blue-600', border: 'border-blue-200' },
@@ -623,7 +665,6 @@ const getColorClass = (color: string, element: 'bg' | 'text' | 'border'): string
   return colorMap[color]?.[element] || colorMap.blue[element];
 };
 
-// DollarSign component for use in benefits
 const DollarSign = (props: React.SVGProps<SVGSVGElement> & { size?: number }) => {
   const { size = 24, ...rest } = props;
   return (
@@ -643,7 +684,6 @@ const DollarSign = (props: React.SVGProps<SVGSVGElement> & { size?: number }) =>
   );
 };
 
-// LineChart component for use in benefits
 const LineChart = (props: React.SVGProps<SVGSVGElement> & { size?: number }) => {
   const { size = 24, ...rest } = props;
   return (
@@ -664,7 +704,6 @@ const LineChart = (props: React.SVGProps<SVGSVGElement> & { size?: number }) => 
   );
 };
 
-// Layers component for use in Step
 const Layers = (props: React.SVGProps<SVGSVGElement> & { size?: number }) => {
   const { size = 24, ...rest } = props;
   return (
