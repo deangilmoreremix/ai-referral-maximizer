@@ -27,7 +27,7 @@ export interface MuapiImageRequest {
 
 export interface MuapiVideoRequest {
   prompt: string;
-  model?: 'gpt-video' | 'runway-gen-2' | 'runway-gen-3' | 'stable-video' | 'luma-video';
+  model?: 'gpt-video';
   duration?: number;
   aspectRatio?: '16:9' | '9:16' | '1:1';
   style?: 'cinematic' | 'anime' | 'photographic' | 'illustration' | '3d-render';
@@ -67,7 +67,7 @@ export interface CoreImageCreationParams {
   colorPalette?: string;
   mood?: string;
   details?: string;
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -83,7 +83,7 @@ export interface MarketingAssetParams {
   targetAudience?: string;
   product?: string;
   colorScheme?: string;
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -97,7 +97,7 @@ export interface BrandingParams {
   colors?: string;
   style?: string;
   targetAudience?: string;
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -112,7 +112,7 @@ export interface ProductEcommerceParams {
   platform?: 'amazon' | 'shopify' | 'ecommerce' | 'general';
   style?: string;
   lifestyle?: boolean;
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -126,7 +126,7 @@ export interface ContentMediaParams {
   style?: string;
   colorScheme?: string;
   targetAudience?: string;
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -176,7 +176,7 @@ export interface UIMediaParams {
   industry?: string;
   components?: string[];
   colorScheme?: string;
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -189,7 +189,7 @@ export interface EducationalGraphicParams {
   style?: string;
   colorScheme?: string;
   audience?: 'beginner' | 'intermediate' | 'advanced';
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -203,7 +203,7 @@ export interface StorytellingParams {
   style?: string;
   frameCount?: number;
   panelLayout?: 'single' | 'grid' | 'vertical-strip' | 'horizontal-strip';
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -216,7 +216,7 @@ export interface RealEstateParams {
   rooms?: string[];
   architecturalStyle?: string;
   lighting?: 'day' | 'evening' | 'night' | 'dawn';
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -228,7 +228,7 @@ export interface FashionLifestyleParams {
   gender?: 'male' | 'female' | 'unisex';
   style?: string;
   season?: 'spring' | 'summer' | 'fall' | 'winter';
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
   size?: '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048';
   quality?: 'low' | 'medium' | 'high';
   n?: number;
@@ -241,7 +241,7 @@ export interface AIEditingWorkflowParams {
   styles?: string[];
   seeds?: number[];
   variationsPerSeed?: number;
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
 }
 
 export interface BatchGenerationResult {
@@ -253,7 +253,7 @@ export interface ABBatchParams {
   prompt: string;
   variantsCount?: number;
   styleVariations?: string[];
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
 }
 
 export interface CreativeAgencyParams {
@@ -265,7 +265,7 @@ export interface CreativeAgencyParams {
   budget?: 'low' | 'medium' | 'high';
   timeline?: string;
   stylePreferences?: string[];
-  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2' | 'midjourney';
+  model?: 'gpt-image' | 'dall-e-3' | 'dall-e-2';
 }
 
 export interface AgencyCreativePackage {

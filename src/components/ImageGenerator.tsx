@@ -25,7 +25,7 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imageType, setImageType] = useState<ImageType>('standard');
-  const [model, setModel] = useState<string>('stable-diffusion');
+  const [model, setModel] = useState<string>('gpt-image');
   const [size, setSize] = useState<string>('1024x1024');
   const [quality, setQuality] = useState<string>('medium');
   const [videoDuration, setVideoDuration] = useState<number>(5);
@@ -244,37 +244,37 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({
 
     switch (imageType) {
       case 'photorealistic':
-        result = await muapiService.generatePhotorealistic({ subject: prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generatePhotorealistic({ subject: prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
         break;
       case 'illustration':
-        result = await muapiService.generateIllustration({ subject: prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generateIllustration({ subject: prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
         break;
       case 'logo':
-        result = await muapiService.generateLogo({ brandName: 'Brand', style: prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generateLogo({ brandName: 'Brand', style: prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', quality: quality as 'low' | 'medium' | 'high' });
         break;
       case 'marketing':
-        result = await muapiService.generateSocialMediaPost({ headline: prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generateSocialMediaPost({ headline: prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
         break;
       case 'product':
-        result = await muapiService.generateProductMockup({ product: prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generateProductMockup({ product: prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
         break;
       case 'content-media':
-        result = await muapiService.generateYouTubeThumbnail({ title: prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generateYouTubeThumbnail({ title: prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
         break;
       case 'ui-design':
-        result = await muapiService.generateWebsiteMockup({ industry: prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generateWebsiteMockup({ industry: prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
         break;
       case 'educational':
-        result = await muapiService.generateInfographic({ topic: prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generateInfographic({ topic: prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
         break;
       case 'real-estate':
-        result = await muapiService.generateInteriorRender({ style: prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generateInteriorRender({ style: prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
         break;
       case 'fashion':
-        result = await muapiService.generateOutfit({ style: prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generateOutfit({ style: prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
         break;
       default:
-        result = await muapiService.generateImage({ prompt, model: model as 'stable-diffusion' | 'dall-e-3' | 'dall-e-2' | 'midjourney', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
+        result = await muapiService.generateImage({ prompt, model: model as 'gpt-image' | 'dall-e-3' | 'dall-e-2', size: size as '512x512' | '1024x1024' | '1792x1024' | '1024x1792' | '2048x2048', quality: quality as 'low' | 'medium' | 'high' });
     }
 
     setGeneratedImage(result.imageUrl);
@@ -286,7 +286,7 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({
     const result = await muapiService.generateVideo({
       prompt,
       duration: videoDuration,
-      model: 'runway-gen-3',
+      model: 'gpt-video',
       aspectRatio: '16:9'
     });
 
@@ -413,43 +413,42 @@ const ImageGenerator: React.FC<ImageGeneratorProps> = ({
         </div>
       )}
 
-      {/* Model and Size Selection */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Model
-          </label>
-          <select
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            disabled={isGenerating}
-          >
-            <option value="stable-diffusion">Stable Diffusion</option>
-            <option value="dall-e-3">DALL-E 3</option>
-            <option value="dall-e-2">DALL-E 2</option>
-            <option value="midjourney">Midjourney</option>
-          </select>
-        </div>
+{/* Model and Size Selection */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Model
+            </label>
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              disabled={isGenerating}
+            >
+              <option value="gpt-image">OpenAI GPT-Image (Default)</option>
+              <option value="dall-e-3">DALL-E 3</option>
+              <option value="dall-e-2">DALL-E 2</option>
+            </select>
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Size
-          </label>
-          <select
-            value={size}
-            onChange={(e) => setSize(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            disabled={isGenerating}
-          >
-            <option value="512x512">Small (512×512)</option>
-            <option value="1024x1024">Square (1024×1024)</option>
-            <option value="1792x1024">Landscape (1792×1024)</option>
-            <option value="1024x1792">Portrait (1024×1792)</option>
-            <option value="2048x2048">Large (2048×2048)</option>
-          </select>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Size
+            </label>
+            <select
+              value={size}
+              onChange={(e) => setSize(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              disabled={isGenerating}
+            >
+              <option value="512x512">Small (512×512)</option>
+              <option value="1024x1024">Square (1024×1024)</option>
+              <option value="1792x1024">Landscape (1792×1024)</option>
+              <option value="1024x1792">Portrait (1024×1792)</option>
+              <option value="2048x2048">Large (2048×2048)</option>
+            </select>
+          </div>
         </div>
-      </div>
 
       {/* Quality Selection */}
       <div className="mb-4">

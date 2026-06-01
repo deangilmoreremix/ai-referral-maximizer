@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Zap, ChevronDown, ChevronUp, MessageSquare, Copy, Check, Download, Brain, Clock, Info, AlertCircle, RefreshCw, LayoutDashboard, CheckCircle } from 'lucide-react';
+import { FileText, Zap, ChevronDown, ChevronUp, MessageSquare, Copy, Check, Download, Brain, Clock, Info, AlertCircle, RefreshCw, LayoutDashboard, CheckCircle, X, ImageIcon } from 'lucide-react';
 import { generateContent } from '../../services/openAIService';
+import { muapiService } from '../../services/muapiService';
+import ImageGenerator from '../ImageGenerator';
 
-type AIModel = 'gemini-2.5-pro' | 'gemini-2.0-flash' | 'gemini-2.0-flash-light';
+type AIModel = 'gpt-5' | 'gpt-5-mini' | 'gpt-5-nano' | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-4-turbo';
 
 interface ContentTemplateProps {
   templateName: string;
@@ -21,7 +23,7 @@ interface ContentTemplate {
 
 const AgencyContentGenerator: React.FC<ContentTemplateProps> = ({ 
   templateName = 'agency-service-description',
-  defaultModel = 'gemini-2.0-flash'
+  defaultModel = 'gpt-5-mini'
 }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<string>(templateName);
   const [selectedModel, setSelectedModel] = useState<AIModel>(defaultModel);
@@ -36,17 +38,19 @@ const AgencyContentGenerator: React.FC<ContentTemplateProps> = ({
   const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [savedTemplates, setSavedTemplates] = useState<string[]>([]);
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [showImageGenerator, setShowImageGenerator] = useState<boolean>(false);
   
-  // Content templates for agencies to offer to clients
+// Content templates for agencies to offer to clients
   const contentTemplates: Record<string, ContentTemplate> = {
     'agency-service-description': {
       id: 'agency-service-description',
       name: 'Agency Service Description',
-      description: 'Professional service description for your AI referral generation agency',
+      description: 'Professional service description for your AI-powered referral generation agency',
       prompt: 'Create a professional service description for an AI-powered referral generation agency. The agency helps clients generate more referrals using AI technology. Include a compelling headline, overview of the service, key benefits, how the process works, and a strong call-to-action. Make it persuasive and professional.',
       icon: <LayoutDashboard size={16} className="mr-2 text-indigo-600" />,
       estimatedLength: '400-600 words',
-      defaultModel: 'gemini-2.0-flash'
+      defaultModel: 'gpt-5-mini'
     },
     'client-proposal': {
       id: 'client-proposal',
@@ -55,7 +59,7 @@ const AgencyContentGenerator: React.FC<ContentTemplateProps> = ({
       prompt: 'Create a comprehensive client proposal template for an AI referral generation agency. Include sections for: 1) Executive Summary, 2) Client Challenges, 3) Proposed Solution with AI referral generation, 4) Implementation Process, 5) Pricing, 6) Expected Results, and 7) Next Steps. The proposal should be persuasive, professional, and highlight the benefits of AI-powered referral generation. Make it customizable with placeholders for client-specific information.',
       icon: <FileText size={16} className="mr-2 text-blue-600" />,
       estimatedLength: '800-1200 words',
-      defaultModel: 'gemini-2.5-pro'
+      defaultModel: 'gpt-5'
     },
     'marketing-email': {
       id: 'marketing-email',
@@ -64,7 +68,7 @@ const AgencyContentGenerator: React.FC<ContentTemplateProps> = ({
       prompt: 'Create a 3-part email sequence for a marketing campaign promoting an AI-powered referral generation agency. The emails should be designed to educate prospects about the benefits of using AI for referral generation and persuade them to book a consultation. Include compelling subject lines for each email. Email 1 should introduce the concept and problem, Email 2 should explain the agency\'s solution, and Email 3 should include testimonials and a strong call to action. Make each email 200-300 words long and clearly label them as Email 1, Email 2, and Email 3.',
       icon: <MessageSquare size={16} className="mr-2 text-green-600" />,
       estimatedLength: '800-1000 words',
-      defaultModel: 'gemini-2.0-flash'
+      defaultModel: 'gpt-5-mini'
     },
     'case-study': {
       id: 'case-study',
@@ -73,7 +77,7 @@ const AgencyContentGenerator: React.FC<ContentTemplateProps> = ({
       prompt: 'Create a detailed case study template for an AI referral generation agency to showcase client success stories. The case study should include sections for: 1) Client Background and Challenges, 2) Goals, 3) Solution Implementation, 4) Results and ROI, and 5) Client Testimonial. Include placeholders for metrics and specific results. The tone should be professional and data-driven while highlighting the effectiveness of AI-powered referral generation services.',
       icon: <CheckCircle size={16} className="mr-2 text-purple-600" />,
       estimatedLength: '700-900 words',
-      defaultModel: 'gemini-2.0-flash'
+      defaultModel: 'gpt-5-mini'
     },
     'onboarding-checklist': {
       id: 'onboarding-checklist',
@@ -82,7 +86,7 @@ const AgencyContentGenerator: React.FC<ContentTemplateProps> = ({
       prompt: 'Create a detailed client onboarding checklist for an AI referral generation agency. Include all necessary steps from initial contract signing to full implementation of referral systems. The checklist should cover: gathering client information, setting up accounts and permissions, configuring AI tools, establishing baseline metrics, training client team members, and launching the referral system. Format the checklist in a clear, sequential manner with sections and subsections. Add notes for internal agency use regarding best practices for each step.',
       icon: <Clock size={16} className="mr-2 text-amber-600" />,
       estimatedLength: '500-700 words',
-      defaultModel: 'gemini-2.0-flash-light'
+      defaultModel: 'gpt-5-nano'
     }
   };
   
@@ -139,6 +143,17 @@ Please format with clear headings, paragraphs, and bullet points where appropria
     }
   };
   
+  // Generate visual for content
+  const handleGenerateVisual = async () => {
+    if (!generatedContent) return;
+    setShowImageGenerator(true);
+  };
+  
+  // Handle image generated
+  const handleImageGenerated = (imageUrl: string) => {
+    setGeneratedImages([...generatedImages, imageUrl]);
+  };
+  
   // Copy content to clipboard
   const handleCopy = () => {
     navigator.clipboard.writeText(generatedContent);
@@ -173,12 +188,18 @@ Please format with clear headings, paragraphs, and bullet points where appropria
   // Get model name for display
   const getModelDisplayName = (model: AIModel): string => {
     switch (model) {
-      case 'gemini-2.5-pro':
-        return 'Gemini 2.5 Pro';
-      case 'gemini-2.0-flash':
-        return 'Gemini 2.0 Flash';
-      case 'gemini-2.0-flash-light':
-        return 'Gemini 2.0 Flash Lite';
+      case 'gpt-5':
+        return 'GPT-5';
+      case 'gpt-5-mini':
+        return 'GPT-5 Mini';
+      case 'gpt-5-nano':
+        return 'GPT-5 Nano';
+      case 'gpt-4o':
+        return 'GPT-4o';
+      case 'gpt-4o-mini':
+        return 'GPT-4o Mini';
+      case 'gpt-4-turbo':
+        return 'GPT-4 Turbo';
       default:
         return model;
     }
@@ -192,7 +213,7 @@ Please format with clear headings, paragraphs, and bullet points where appropria
           <h2 className="text-xl font-bold">AI Content Generator for Agencies</h2>
         </div>
         <p className="text-indigo-100 text-sm mt-1">
-          Create professional agency content using Gemini AI models
+          Create professional agency content using OpenAI GPT models
         </p>
       </div>
       
@@ -231,15 +252,17 @@ Please format with clear headings, paragraphs, and bullet points where appropria
               onChange={(e) => setSelectedModel(e.target.value as AIModel)}
               className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
-              <option value="gemini-2.0-flash-light">Gemini 2.0 Flash Lite (Fastest)</option>
-              <option value="gemini-2.0-flash">Gemini 2.0 Flash (Balanced)</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Highest Quality)</option>
+              <option value="gpt-5-nano">GPT-5 Nano (Fastest)</option>
+              <option value="gpt-5-mini">GPT-5 Mini (Balanced)</option>
+              <option value="gpt-4o-mini">GPT-4o Mini (Efficient)</option>
+              <option value="gpt-5">GPT-5 (Highest Quality)</option>
             </select>
             <p className="mt-1 text-sm text-gray-500 flex items-center">
               <Clock className="h-4 w-4 mr-1 text-gray-400" />
-              {selectedModel === 'gemini-2.0-flash-light' && 'Fast generation (5-10 seconds)'}
-              {selectedModel === 'gemini-2.0-flash' && 'Balanced speed and quality (10-20 seconds)'}
-              {selectedModel === 'gemini-2.5-pro' && 'Highest quality output (20-40 seconds)'}
+              {selectedModel === 'gpt-5-nano' && 'Fast generation (5-10 seconds)'}
+              {selectedModel === 'gpt-5-mini' && 'Balanced speed and quality (10-20 seconds)'}
+              {selectedModel === 'gpt-4o-mini' && 'Efficient generation (10-15 seconds)'}
+              {selectedModel === 'gpt-5' && 'Highest quality output (20-40 seconds)'}
             </p>
           </div>
         </div>
@@ -271,9 +294,9 @@ Please format with clear headings, paragraphs, and bullet points where appropria
                     This template will generate {getTemplate().estimatedLength} of content. For best results, 
                     provide industry details and target audience information below.
                   </p>
-                  <p className="text-xs text-blue-600 mt-2">
-                    Estimated generation time: {selectedModel === 'gemini-2.5-pro' ? '20-40' : 
-                                              selectedModel === 'gemini-2.0-flash' ? '10-20' : '5-10'} seconds
+<p className="text-xs text-blue-600 mt-2">
+                    Estimated generation time: {selectedModel === 'gpt-5' ? '20-40' : 
+                                                selectedModel === 'gpt-5-mini' ? '10-20' : '5-10'} seconds
                   </p>
                 </div>
               </div>
@@ -471,26 +494,80 @@ Please format with clear headings, paragraphs, and bullet points where appropria
                 })}
               </div>
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-64">
-              <FileText className="h-12 w-12 text-gray-300 mb-2" />
-              <p className="text-gray-500">Select a template and click "Generate" to create content</p>
-              <p className="text-xs text-gray-400 mt-1">Powered by Gemini AI models</p>
-            </div>
-          )}
+) : (
+             <div className="flex flex-col items-center justify-center h-64">
+               <FileText className="h-12 w-12 text-gray-300 mb-2" />
+               <p className="text-gray-500">Select a template and click "Generate" to create content</p>
+               <p className="text-xs text-gray-400 mt-1">Powered by OpenAI GPT models</p>
+             </div>
+           )}
         </div>
         
-        {generatedContent && (
-          <div className="mt-3 p-3 bg-indigo-50 rounded-md text-xs text-indigo-700 flex items-start">
-            <Info className="h-4 w-4 text-indigo-500 mt-0.5 mr-2 flex-shrink-0" />
-            <p>
-              This content was generated using {getModelDisplayName(selectedModel)}. Remember that AI-generated content should always be reviewed and edited before client use. You can iterate on this content by adjusting parameters and regenerating.
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+{generatedContent && (
+           <div className="mt-3 flex space-x-2">
+             <button
+               onClick={handleGenerateVisual}
+               className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+             >
+               <ImageIcon className="h-4 w-4 mr-1" />
+               Generate Visual
+             </button>
+           </div>
+         )}
+         
+         {/* Generated Images Display */}
+         {generatedImages.length > 0 && (
+           <div className="mt-4 pt-4 border-t border-gray-200">
+             <h4 className="text-sm font-medium text-gray-700 mb-3">Generated Visuals</h4>
+             <div className="grid grid-cols-2 gap-4">
+               {generatedImages.map((imageUrl, idx) => (
+                 <div key={idx} className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                   <img 
+                     src={imageUrl} 
+                     alt={`Generated visual ${idx + 1}`}
+                     className="w-full h-auto object-cover"
+                   />
+                 </div>
+               ))}
+             </div>
+           </div>
+         )}
+         
+         {generatedContent && (
+           <div className="mt-3 p-3 bg-indigo-50 rounded-md text-xs text-indigo-700 flex items-start">
+             <Info className="h-4 w-4 text-indigo-500 mt-0.5 mr-2 flex-shrink-0" />
+             <p>
+               This content was generated using {getModelDisplayName(selectedModel)}. Remember that AI-generated content should always be reviewed and edited before client use. You can iterate on this content by adjusting parameters and regenerating.
+             </p>
+           </div>
+         )}
+       </div>
+     </div>
+     
+     {/* Image Generator Modal */}
+     {showImageGenerator && (
+       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+         <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+             <h2 className="text-xl font-semibold text-gray-900">AI Image Generator</h2>
+             <button
+               onClick={() => setShowImageGenerator(false)}
+               className="text-gray-400 hover:text-gray-600"
+             >
+               <X className="w-6 h-6" />
+             </button>
+           </div>
+           <div className="p-6">
+             <ImageGenerator
+               contentType="presentation"
+               contentTitle={getTemplate().name}
+               onImageGenerated={handleImageGenerated}
+             />
+           </div>
+         </div>
+       </div>
+     )}
+   );
+ };
 
 export default AgencyContentGenerator;
