@@ -6,9 +6,10 @@ import pptxgen from 'pptxgenjs';
  * @param title Title of the presentation
  * @param contentType Type of content being presented
  * @param content Markdown content
+ * @param imageUrls Optional array of image URLs to include as slides
  * @returns PowerPoint presentation object
  */
-export function generatePptx(title: string, contentType: string, content: string) {
+export function generatePptx(title: string, contentType: string, content: string, imageUrls?: string[]) {
   // Create a new PowerPoint presentation
   const pres = new pptxgen();
   
@@ -294,4 +295,73 @@ function extractBulletPoints(text: string): string[] {
   }
   
   return bulletPoints;
+}
+
+/**
+ * Add image slides to the PowerPoint presentation
+ * 
+ * @param pres PowerPoint presentation object
+ * @param imageUrls Array of image URLs to add as slides
+ */
+export async function addImageSlides(pres: pptxgen, imageUrls: string[]): Promise<void> {
+  for (let i = 0; i < imageUrls.length; i++) {
+    const slide = pres.addSlide();
+    
+    try {
+      // Fetch the image as blob
+      const response = await fetch(imageUrls[i]);
+      const blob = await response.blob();
+      
+      // Convert blob to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (reader.result && typeof reader.result === 'string') {
+            resolve(reader.result.split(',')[1]); // Remove data URI prefix
+          } else {
+            reject(new Error('Failed to convert image to base64'));
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      
+      // Add the image to the slide
+      slide.addImage({
+        data: base64,
+        type: 'image/png',
+        x: 0.5,
+        y: 0.5,
+        w: 9,
+        h: 5
+      });
+      
+      // Add slide number
+      slide.addText(`Generated Visual ${i + 1}`, {
+        x: 0.5,
+        y: 5.3,
+        w: 9,
+        h: 0.5,
+        align: 'center',
+        color: '6B7280',
+        fontFace: 'Arial',
+        fontSize: 14
+      });
+    } catch (error) {
+      console.error(`Failed to add image slide for ${imageUrls[i]}:`, error);
+      
+      // Add error placeholder
+      slide.addText('Image Unavailable', {
+        x: 0.5,
+        y: 3,
+        w: 9,
+        h: 1,
+        align: 'center',
+        color: 'EF4444',
+        fontFace: 'Arial',
+        fontSize: 24,
+        italic: true
+      });
+    }
+  }
 }

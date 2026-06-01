@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Users, Calendar, Target, FileText, Plus, ChevronDown, ChevronUp, Edit, Trash2, 
   CheckCircle, MessageSquare, Phone, Mail, Globe, ArrowRight, Briefcase, AlertCircle, 
-  Download, BarChart2, Clock, ImageIcon, X
+  Download, BarChart2, Clock, ImageIcon, X, Sparkles, RefreshCw
 } from 'lucide-react';
 import { generateContent } from '../../services/openAIService';
 import ImageGenerator from '../ImageGenerator';
@@ -106,7 +106,6 @@ const ClientCampaignBuilder: React.FC = () => {
   
   const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [campaignImages, setCampaignImages] = useState<Record<string, string[]>>({});
-  const [generatingImages, setGeneratingImages] = useState<Record<string, boolean>>({});
 
   // Handle selecting a campaign
   const handleSelectCampaign = (campaignId: string) => {
@@ -203,7 +202,7 @@ For ${selectedChannel} specifically, ensure the content follows best practices f
     if (!selectedCampaign) return;
     setShowImageGenerator(true);
   };
-  
+
   const handleImageGenerated = (imageUrl: string) => {
     if (selectedCampaign) {
       setCampaignImages(prev => ({
@@ -427,392 +426,275 @@ For ${selectedChannel} specifically, ensure the content follows best practices f
                             <div className="flex flex-wrap gap-2">
                               {campaign.channels.map((channel) => (
                                 <div key={channel} className="flex items-center bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">
-                                  {channel === 'email' && <Mail size={14} className="mr-1.5 text-gray-500" />}
-                                  {channel === 'phone' && <Phone size={14} className="mr-1.5 text-gray-500" />}
-                                  {channel === 'whatsapp' && <MessageSquare size={14} className="mr-1.5 text-gray-500" />}
-                                  {channel === 'linkedin' && <Globe size={14} className="mr-1.5 text-gray-500" />}
-                                  {channel === 'face-to-face' && <Users size={14} className="mr-1.5 text-gray-500" />}
-                                  {channel.charAt(0).toUpperCase() + channel.slice(1)}
-                                </div>
-                              ))}
+                                    {channel === 'email' && <Mail size={14} className="mr-1.5 text-gray-500" />}
+                                    {channel === 'phone' && <Phone size={14} className="mr-1.5 text-gray-500" />}
+                                    {channel === 'whatsapp' && <MessageSquare size={14} className="mr-1.5 text-gray-500" />}
+                                    {channel === 'linkedin' && <Globe size={14} className="mr-1.5 text-gray-500" />}
+                                    {channel === 'face-to-face' && <Users size={14} className="mr-1.5 text-gray-500" />}
+                                    {channel.charAt(0).toUpperCase() + channel.slice(1)}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                          
-                          <div className="mt-6 flex flex-wrap gap-3">
-                            {showTemplateCreator ? (
-                              <div className="w-full border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                <div className="flex justify-between items-center mb-3">
-                                  <h4 className="font-medium text-gray-900">Create Content Template</h4>
-                                  <button 
-                                    onClick={() => setShowTemplateCreator(false)}
-                                    className="text-gray-400 hover:text-gray-600"
-                                  >
-                                    <X className="h-5 w-5" />
-                                  </button>
-                                </div>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Channel</label>
-                                    <select 
-                                      value={selectedChannel}
-                                      onChange={(e) => setSelectedChannel(e.target.value)}
-                                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                            
+                            <div className="mt-6 flex flex-wrap gap-3">
+                              {showTemplateCreator ? (
+                                <div className="w-full border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                  <div className="flex justify-between items-center mb-3">
+                                    <h4 className="font-medium text-gray-900">Create Content Template</h4>
+                                    <button 
+                                      onClick={() => setShowTemplateCreator(false)}
+                                      className="text-gray-400 hover:text-gray-600"
                                     >
-                                      <option value="email">Email</option>
-                                      <option value="phone">Phone Script</option>
-                                      <option value="whatsapp">WhatsApp</option>
-                                      <option value="linkedin">LinkedIn</option>
-                                    </select>
+                                      <X className="h-5 w-5" />
+                                    </button>
                                   </div>
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Timing</label>
-                                    <select 
-                                      value={newTemplate.timing}
-                                      onChange={(e) => setNewTemplate({...newTemplate, timing: e.target.value})}
+                                  
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Channel</label>
+                                      <select 
+                                        value={selectedChannel}
+                                        onChange={(e) => setSelectedChannel(e.target.value)}
+                                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                      >
+                                        <option value="email">Email</option>
+                                        <option value="phone">Phone Script</option>
+                                        <option value="whatsapp">WhatsApp</option>
+                                        <option value="linkedin">LinkedIn</option>
+                                      </select>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Timing</label>
+                                      <select 
+                                        value={newTemplate.timing}
+                                        onChange={(e) => setNewTemplate({...newTemplate, timing: e.target.value})}
+                                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                      >
+                                        <option value="Day 1">Day 1</option>
+                                        <option value="Day 3">Day 3</option>
+                                        <option value="Day 5">Day 5</option>
+                                        <option value="Day 7">Day 7</option>
+                                        <option value="Day 10">Day 10</option>
+                                        <option value="Day 14">Day 14</option>
+                                        <option value="Follow-up">Follow-up</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="mb-3">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Template Title</label>
+                                    <input
+                                      type="text"
+                                      value={newTemplate.title}
+                                      onChange={(e) => setNewTemplate({...newTemplate, title: e.target.value})}
+                                      placeholder="e.g., Initial Outreach"
                                       className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                    />
+                                  </div>
+                                  
+                                  <div className="mb-3">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                                    <textarea
+                                      value={newTemplate.content}
+                                      onChange={(e) => setNewTemplate({...newTemplate, content: e.target.value})}
+                                      rows={6}
+                                      placeholder="Enter your template content here... Use {{name}}, {{client_name}}, etc. for personalization."
+                                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
+                                    ></textarea>
+                                  </div>
+                                  
+                                  <div className="flex justify-between">
+                                    <button
+                                      onClick={handleGenerateTemplate}
+                                      className="inline-flex items-center px-3 py-2 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                                     >
-                                      <option value="Day 1">Day 1</option>
-                                      <option value="Day 3">Day 3</option>
-                                      <option value="Day 5">Day 5</option>
-                                      <option value="Day 7">Day 7</option>
-                                      <option value="Day 10">Day 10</option>
-                                      <option value="Day 14">Day 14</option>
-                                      <option value="Follow-up">Follow-up</option>
-                                    </select>
+                                      {isGenerating ? (
+                                        <>
+                                          <RefreshCw className="animate-spin -ml-0.5 mr-2 h-4 w-4" />
+                                          Generating...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Sparkles className="-ml-0.5 mr-2 h-4 w-4" />
+                                          Generate with AI
+                                        </>
+                                      )}
+                                    </button>
+                                    
+                                    <div>
+                                      <button
+                                        onClick={() => setShowTemplateCreator(false)}
+                                        className="mr-2 px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          if (newTemplate.title && newTemplate.content) {
+                                            setContentTemplates([...contentTemplates, {
+                                              id: `template-${Date.now()}`,
+                                              channel: selectedChannel,
+                                              title: newTemplate.title,
+                                              content: newTemplate.content,
+                                              timing: newTemplate.timing
+                                            }]);
+                                            setNewTemplate({
+                                              channel: 'email',
+                                              title: '',
+                                              content: '',
+                                              timing: 'Day 1'
+                                            });
+                                            setShowTemplateCreator(false);
+                                          }
+                                        }}
+                                        disabled={!newTemplate.title || !newTemplate.content}
+                                        className="px-3 py-2 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                      >
+                                        Save Template
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
-                                
-                                <div className="mb-3">
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Template Title</label>
-                                  <input
-                                    type="text"
-                                    value={newTemplate.title}
-                                    onChange={(e) => setNewTemplate({...newTemplate, title: e.target.value})}
-                                    placeholder="e.g., Initial Outreach"
-                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                                  />
-                                </div>
-                                
-                                <div className="mb-3">
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-                                  <textarea
-                                    value={newTemplate.content}
-                                    onChange={(e) => setNewTemplate({...newTemplate, content: e.target.value})}
-                                    rows={6}
-                                    placeholder="Enter your template content here... Use {{name}}, {{client_name}}, etc. for personalization."
-                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                                  ></textarea>
-                                </div>
-                                
-                                <div className="flex justify-between">
+                              ) : (
+                                <>
                                   <button
-                                    onClick={handleGenerateTemplate}
-                                    className="inline-flex items-center px-3 py-2 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                    onClick={() => setShowTemplateCreator(true)}
+                                    className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded shadow-sm text-sm font-medium flex items-center"
                                   >
-                                    {isGenerating ? (
-                                      <>
-                                        <RefreshCw className="animate-spin -ml-0.5 mr-2 h-4 w-4" />
-                                        Generating...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Sparkles className="-ml-0.5 mr-2 h-4 w-4" />
-                                        Generate with AI
-                                      </>
-                                    )}
+                                    <Plus className="h-4 w-4 mr-1.5" />
+                                    Create Content Template
                                   </button>
                                   
-                                  <div>
-                                    <button
-                                      onClick={() => setShowTemplateCreator(false)}
-                                      className="mr-2 px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                    >
-                                      Cancel
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        if (newTemplate.title && newTemplate.content) {
-                                          setContentTemplates([...contentTemplates, {
-                                            id: `template-${Date.now()}`,
-                                            channel: selectedChannel,
-                                            title: newTemplate.title,
-                                            content: newTemplate.content,
-                                            timing: newTemplate.timing
-                                          }]);
-                                          setNewTemplate({
-                                            channel: 'email',
-                                            title: '',
-                                            content: '',
-                                            timing: 'Day 1'
-                                          });
-                                          setShowTemplateCreator(false);
-                                        }
-                                      }}
-                                      disabled={!newTemplate.title || !newTemplate.content}
-                                      className="px-3 py-2 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                                    >
-                                      Save Template
-                                    </button>
-                                  </div>
+                                  <button
+                                    onClick={handleGenerateCampaignVisuals}
+                                    className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded shadow-sm text-sm font-medium flex items-center"
+                                  >
+                                    <ImageIcon className="h-4 w-4 mr-1.5" />
+                                    Generate Visuals
+                                  </button>
+                                </>
+                              )}
+                              
+                              <button
+                                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded shadow-sm text-sm font-medium flex items-center"
+                              >
+                                <BarChart2 className="h-4 w-4 mr-1.5" />
+                                Campaign Analytics
+                              </button>
+                              
+                              <button
+                                className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded shadow-sm text-sm font-medium flex items-center"
+                              >
+                                <Download className="h-4 w-4 mr-1.5" />
+                                Export Campaign
+                              </button>
+                            </div>
+                            
+                            {/* Generated Visuals */}
+                            {selectedCampaign && campaignImages[selectedCampaign]?.length > 0 && (
+                              <div className="mt-6 border-t border-gray-200 pt-4">
+                                <h4 className="text-sm font-medium text-gray-700 mb-3">Campaign Visuals</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                  {campaignImages[selectedCampaign]?.map((imageUrl, idx) => (
+                                    <div key={idx} className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                      <img 
+                                        src={imageUrl} 
+                                        alt={`Campaign visual ${idx + 1}`}
+                                        className="w-full h-auto object-cover"
+                                      />
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
-{showTemplateCreator ? (
-                               <div className="w-full border border-gray-200 rounded-lg p-4 bg-gray-50">
-                                 <div className="flex justify-between items-center mb-3">
-                                   <h4 className="font-medium text-gray-900">Create Content Template</h4>
-                                   <button 
-                                     onClick={() => setShowTemplateCreator(false)}
-                                     className="text-gray-400 hover:text-gray-600"
-                                   >
-                                     <X className="h-5 w-5" />
-                                   </button>
-                                 </div>
-                                 
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                                   <div>
-                                     <label className="block text-sm font-medium text-gray-700 mb-1">Channel</label>
-                                     <select 
-                                       value={selectedChannel}
-                                       onChange={(e) => setSelectedChannel(e.target.value)}
-                                       className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                                     >
-                                       <option value="email">Email</option>
-                                       <option value="phone">Phone Script</option>
-                                       <option value="whatsapp">WhatsApp</option>
-                                       <option value="linkedin">LinkedIn</option>
-                                     </select>
-                                   </div>
-                                   <div>
-                                     <label className="block text-sm font-medium text-gray-700 mb-1">Timing</label>
-                                     <select 
-                                       value={newTemplate.timing}
-                                       onChange={(e) => setNewTemplate({...newTemplate, timing: e.target.value})}
-                                       className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                                     >
-                                       <option value="Day 1">Day 1</option>
-                                       <option value="Day 3">Day 3</option>
-                                       <option value="Day 5">Day 5</option>
-                                       <option value="Day 7">Day 7</option>
-                                       <option value="Day 10">Day 10</option>
-                                       <option value="Day 14">Day 14</option>
-                                       <option value="Follow-up">Follow-up</option>
-                                     </select>
-                                   </div>
-                                 </div>
-                                 
-                                 <div className="mb-3">
-                                   <label className="block text-sm font-medium text-gray-700 mb-1">Template Title</label>
-                                   <input
-                                     type="text"
-                                     value={newTemplate.title}
-                                     onChange={(e) => setNewTemplate({...newTemplate, title: e.target.value})}
-                                     placeholder="e.g., Initial Outreach"
-                                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                                   />
-                                 </div>
-                                 
-                                 <div className="mb-3">
-                                   <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-                                   <textarea
-                                     value={newTemplate.content}
-                                     onChange={(e) => setNewTemplate({...newTemplate, content: e.target.value})}
-                                     rows={6}
-                                     placeholder="Enter your template content here... Use {{name}}, {{client_name}}, etc. for personalization."
-                                     className="block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                                   ></textarea>
-                                 </div>
-                                 
-                                 <div className="flex justify-between">
-                                   <button
-                                     onClick={handleGenerateTemplate}
-                                     className="inline-flex items-center px-3 py-2 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                   >
-                                     {isGenerating ? (
-                                       <>
-                                         <RefreshCw className="animate-spin -ml-0.5 mr-2 h-4 w-4" />
-                                         Generating...
-                                       </>
-                                     ) : (
-                                       <>
-                                         <Sparkles className="-ml-0.5 mr-2 h-4 w-4" />
-                                         Generate with AI
-                                       </>
-                                     )}
-                                   </button>
-                                   
-                                   <div>
-                                     <button
-                                       onClick={() => setShowTemplateCreator(false)}
-                                       className="mr-2 px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                     >
-                                       Cancel
-                                     </button>
-                                     <button
-                                       onClick={() => {
-                                         if (newTemplate.title && newTemplate.content) {
-                                           setContentTemplates([...contentTemplates, {
-                                             id: `template-${Date.now()}`,
-                                             channel: selectedChannel,
-                                             title: newTemplate.title,
-                                             content: newTemplate.content,
-                                             timing: newTemplate.timing
-                                           }]);
-                                           setNewTemplate({
-                                             channel: 'email',
-                                             title: '',
-                                             content: '',
-                                             timing: 'Day 1'
-                                           });
-                                           setShowTemplateCreator(false);
-                                         }
-                                       }}
-                                       disabled={!newTemplate.title || !newTemplate.content}
-                                       className="px-3 py-2 border border-transparent rounded shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                                     >
-                                       Save Template
-                                     </button>
-                                   </div>
-                                 </div>
-                               </div>
-                             ) : (
-                               <>
-                                 <button
-                                   onClick={() => setShowTemplateCreator(true)}
-                                   className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded shadow-sm text-sm font-medium flex items-center"
-                                 >
-                                   <Plus className="h-4 w-4 mr-1.5" />
-                                   Create Content Template
-                                 </button>
-                                 
-                                 <button
-                                   onClick={handleGenerateCampaignVisuals}
-                                   className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded shadow-sm text-sm font-medium flex items-center"
-                                 >
-                                   <ImageIcon className="h-4 w-4 mr-1.5" />
-                                   Generate Visuals
-                                 </button>
-                               </>
-                             )}
-                             
-                             <button
-                               className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded shadow-sm text-sm font-medium flex items-center"
-                             >
-                               <BarChart2 className="h-4 w-4 mr-1.5" />
-                               Campaign Analytics
-                             </button>
-                             
-                             <button
-                               className="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded shadow-sm text-sm font-medium flex items-center"
-                             >
-                               <Download className="h-4 w-4 mr-1.5" />
-                               Export Campaign
-                             </button>
-                           </div>
-                             
-                             {/* Generated Visuals */}
-                             {selectedCampaign && campaignImages[selectedCampaign]?.length > 0 && (
-                               <div className="mt-6 border-t border-gray-200 pt-4">
-                                 <h4 className="text-sm font-medium text-gray-700 mb-3">Campaign Visuals</h4>
-                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                   {campaignImages[selectedCampaign]?.map((imageUrl, idx) => (
-                                     <div key={idx} className="rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-                                       <img 
-                                         src={imageUrl} 
-                                         alt={`Campaign visual ${idx + 1}`}
-                                         className="w-full h-auto object-cover"
-                                       />
-                                     </div>
-                                   ))}
-                                 </div>
-                               </div>
-                             )}
-                             
-                             {/* Templates list */}
-                             {contentTemplates.length > 0 && (
-                               <div className="mt-6 border-t border-gray-200 pt-4">
-                                 <h4 className="text-sm font-medium text-gray-700 mb-3">Campaign Templates</h4>
-                                 <div className="space-y-3">
-                                   {contentTemplates.map(template => (
-                                     <div key={template.id} className="border border-gray-200 rounded-lg p-3 bg-white hover:shadow-sm transition-shadow">
-                                       <div className="flex justify-between items-start">
-                                         <div className="flex items-start">
-                                           <div className={`p-2 rounded-full flex-shrink-0 ${
-                                             template.channel === 'email' ? 'bg-blue-100' : 
-                                             template.channel === 'phone' ? 'bg-purple-100' :
-                                             template.channel === 'whatsapp' ? 'bg-green-100' :
-                                             'bg-indigo-100'
-                                           }`}>
-                                             {template.channel === 'email' && <Mail size={14} className="text-blue-600" />}
-                                             {template.channel === 'phone' && <Phone size={14} className="text-purple-600" />}
-                                             {template.channel === 'whatsapp' && <MessageSquare size={14} className="text-green-600" />}
-                                             {template.channel === 'linkedin' && <Globe size={14} className="text-indigo-600" />}
-                                           </div>
-                                           <div className="ml-3">
-                                             <h5 className="text-sm font-medium text-gray-900">{template.title}</h5>
-                                             <div className="flex items-center mt-1">
-                                               <span className="text-xs text-gray-500 mr-3">
-                                                 {template.channel.charAt(0).toUpperCase() + template.channel.slice(1)}
-                                               </span>
-                                               <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
-                                                 {template.timing}
-                                               </span>
-                                             </div>
-                                           </div>
-                                         </div>
-                                         <div className="flex">
-                                           <button className="text-gray-400 hover:text-gray-600 p-1">
-                                             <Edit size={14} />
-                                           </button>
-                                           <button className="text-gray-400 hover:text-red-600 p-1">
-                                             <Trash2 size={14} />
-                                           </button>
-                                         </div>
-                                       </div>
-                                       <div className="mt-3 pl-9">
-                                         <p className="text-xs text-gray-600 line-clamp-2">{template.content}</p>
-                                       </div>
-                                     </div>
-                                   ))}
-                                 </div>
-                               </div>
-                             )}
-                           </div>
-                         )}
-                       </div>
-                     ))}
-                   </div>
-                 )}
-               </div>
-           <>
-             )}
-       </div>
-     </div>
-     
-     {/* Image Generator Modal */}
-     {showImageGenerator && (
-       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-         <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-             <h2 className="text-xl font-semibold text-gray-900">AI Campaign Visual Generator</h2>
-             <button
-               onClick={() => setShowImageGenerator(false)}
-               className="text-gray-400 hover:text-gray-600"
-             >
-               <X className="w-6 h-6" />
-             </button>
-           </div>
-           <div className="p-6">
-             <ImageGenerator
-               contentType="presentation"
-               contentTitle="Campaign Visuals"
-               onImageGenerated={handleImageGenerated}
-             />
-           </div>
-         </div>
-       </div>
-     )}
-   </div>
- );
+                            )}
+                            
+                            {/* Templates list */}
+                            {contentTemplates.length > 0 && (
+                              <div className="mt-6 border-t border-gray-200 pt-4">
+                                <h4 className="text-sm font-medium text-gray-700 mb-3">Campaign Templates</h4>
+                                <div className="space-y-3">
+                                  {contentTemplates.map(template => (
+                                    <div key={template.id} className="border border-gray-200 rounded-lg p-3 bg-white hover:shadow-sm transition-shadow">
+                                      <div className="flex justify-between items-start">
+                                        <div className="flex items-start">
+                                          <div className={`p-2 rounded-full flex-shrink-0 ${
+                                            template.channel === 'email' ? 'bg-blue-100' : 
+                                            template.channel === 'phone' ? 'bg-purple-100' :
+                                            template.channel === 'whatsapp' ? 'bg-green-100' :
+                                            'bg-indigo-100'
+                                          }`}>
+                                            {template.channel === 'email' && <Mail size={14} className="text-blue-600" />}
+                                            {template.channel === 'phone' && <Phone size={14} className="text-purple-600" />}
+                                            {template.channel === 'whatsapp' && <MessageSquare size={14} className="text-green-600" />}
+                                            {template.channel === 'linkedin' && <Globe size={14} className="text-indigo-600" />}
+                                          </div>
+                                          <div className="ml-3">
+                                            <h5 className="text-sm font-medium text-gray-900">{template.title}</h5>
+                                            <div className="flex items-center mt-1">
+                                              <span className="text-xs text-gray-500 mr-3">
+                                                {template.channel.charAt(0).toUpperCase() + template.channel.slice(1)}
+                                              </span>
+                                              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                                                {template.timing}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="flex">
+                                          <button className="text-gray-400 hover:text-gray-600 p-1">
+                                            <Edit size={14} />
+                                          </button>
+                                          <button className="text-gray-400 hover:text-red-600 p-1">
+                                            <Trash2 size={14} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <div className="mt-3 pl-9">
+                                        <p className="text-xs text-gray-600 line-clamp-2">{template.content}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          </div>
+        )}
+      </div>
+      
+      {/* Image Generator Modal */}
+      {showImageGenerator && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900">AI Campaign Visual Generator</h2>
+              <button
+                onClick={() => setShowImageGenerator(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6">
+              <ImageGenerator
+                contentType="presentation"
+                contentTitle="Campaign Visuals"
+                onImageGenerated={handleImageGenerated}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default ClientCampaignBuilder;

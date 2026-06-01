@@ -2,6 +2,76 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import 'jspdf-autotable';
 
+// Helper function to fetch image and convert to base64
+export async function fetchImageAsBase64(imageUrl: string): Promise<string> {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status}`);
+    }
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (reader.result && typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to convert image to base64'));
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error fetching image as base64:', error);
+    throw error;
+  }
+}
+
+// Helper function to add images to PDF
+export async function addImagesToPdf(
+  doc: jsPDF,
+  imageUrls: string[],
+  startY: number,
+  options?: {
+    maxWidth?: number;
+    maxHeight?: number;
+    columns?: number;
+  }
+): Promise<number> {
+  const margin = 20;
+  const pageWidth = doc.internal.pageSize.width;
+  const maxWidth = options?.maxWidth || (pageWidth - 2 * margin) / 2;
+  const maxHeight = options?.maxHeight || 60;
+  const columns = options?.columns || 2;
+
+  let currentY = startY;
+
+  for (let i = 0; i < imageUrls.length; i += columns) {
+    if (currentY > 250) {
+      doc.addPage();
+      currentY = 20;
+    }
+
+    const rowImages = imageUrls.slice(i, i + columns);
+    const cellWidth = (pageWidth - 2 * margin) / columns;
+
+    for (let j = 0; j < rowImages.length; j++) {
+      try {
+        const base64Image = await fetchImageAsBase64(rowImages[j]);
+        const x = margin + j * cellWidth + (cellWidth - maxWidth) / 2;
+        doc.addImage(base64Image, 'PNG', x, currentY, maxWidth, maxHeight);
+      } catch (error) {
+        console.warn(`Failed to add image ${rowImages[j]}:`, error);
+      }
+    }
+
+    currentY += maxHeight + 10;
+  }
+
+  return currentY;
+}
+
 // Helper function to create PDF document with consistent styling
 function createPdf(title: string, companyName = 'Rebranding Services') {
   const doc = new jsPDF({
